@@ -20,7 +20,7 @@
                 </label>
             </div>
             <div class="mx-2 flex-1 px-2">
-                <h3 class="font-bold text-2xl">Dashboards</h3>
+                <h3 class="font-bold text-2xl">Sources</h3>
             </div>
             <div class="hidden flex-none lg:block">
                 <ul class="menu menu-horizontal gap-3">
@@ -52,28 +52,23 @@
             </div>
             <!-- Content -->
             <div class="grid grid-cols-3 gap-2 m-5">
-                {% for dashboard in dashboards %}
-                    <div class="card bg-base-100 w-96 shadow-sm">
-                        <figure>
-                            <img
-                            src="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
-                            alt="Shoes" />
-                        </figure>
+                {% for source in sources %}
+                    <div class="card card-border bg-base-200 w-96 shadow-sm">
                         <div class="card-body">
-                            <h2 class="card-title">{{ dashboard.name }}</h2>
-                            <p>{{ dashboard.details }}</p>
+                            <h2 class="card-title">{{ source.name }}</h2>
+                            <p>{{ source.route }}</p>
                             <div class="card-actions justify-end">
-                            <button class="btn btn-primary"><i class="fa-solid fa-pencil"></i>Edit</button>
+                                <button class="btn btn-primary"><i class="fa-solid fa-pencil"></i>Edit</button>
                             </div>
                         </div>
                     </div>
                 {% endfor %}
                 <div class="card card-border bg-base-100 w-96 shadow-sm">
                     <div class="card-body items-center text-center">
-                        <h2 class="card-title">Create a new dashboard</h2>
-                        <p>Add a new dashboard for your account</p>
+                        <h2 class="card-title">Add a new source</h2>
+                        <p>Add a new API to access in a dashboard</p>
                         <div class="card-actions">
-                            <button class="btn btn-primary" onclick="new_dash_modal.showModal()"><i class="fa-solid fa-plus"></i> Add</button>
+                            <button class="btn btn-primary" onclick="add_source_modal.showModal()"><i class="fa-solid fa-plus"></i> Add</button>
                         </div>
                     </div>
                 </div>
@@ -83,8 +78,8 @@
             <label for="my-drawer-3" aria-label="close sidebar" class="drawer-overlay"></label>
             <ul class="menu bg-base-200 min-h-full w-80 p-4">
             <!-- Sidebar content here -->
-            <li><button class="btn btn-ghost btn-wide btn-disabled border-solid border-primary mb-3">Dashboards</button></li>
-            <li><button class="btn btn-ghost btn-wide mb-3" onclick="location.href = '/sources'">Sources</button></li>
+            <li><button class="btn btn-ghost btn-wide mb-3" onclick="location.href = '/home'">Dashboards</button></li>
+            <li><button class="btn btn-ghost btn-wide btn-disabled border-solid border-primary mb-3">Sources</button></li>
             <li><button class="btn btn-wide btn-primary" onclick="new_dash_modal.showModal()"><i class="fa-solid fa-plus"></i>New Dashboard</button></li>
             </ul>
         </div>
@@ -103,6 +98,24 @@
                     <option>Source 2</option>
                     <option>Source 3</option>
                 </select>
+                <div class="row">
+                    <button class="btn btn-primary"><i class="fa-solid fa-plus"></i>Create</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+    <dialog id="add_source_modal" class="modal">
+        <div class="modal-box">
+            <h3 class="text-lg font-bold mb-4">Add a new source</h3>
+            <form method="post" action="/api/create-source" class="flex flex-col">
+                <label class="floating-label mb-3">
+                    <span>Source Name</span>
+                    <input type="text" placeholder="New Source" class="input input-md" name="name" />
+                </label>
+                <label class="floating-label mb-3">
+                    <span>Source Route</span>
+                    <input type="text" placeholder="api.website.com" class="input input-md" name="route" />
+                </label>
                 <div class="row">
                     <button class="btn btn-primary"><i class="fa-solid fa-plus"></i>Create</button>
                 </div>
