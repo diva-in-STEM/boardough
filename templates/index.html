@@ -27,7 +27,7 @@
                 <!-- Navbar menu content here -->
                  <label class="swap swap-rotate">
                     <!-- this hidden checkbox controls the state -->
-                    <input type="checkbox" class="theme-controller" value="light" />
+                    <input type="checkbox" class="theme-controller" value="lofi" />
                     <!-- moon icon -->
                     <svg
                         class="swap-on h-10 w-10 fill-current"
@@ -53,22 +53,22 @@
             <!-- Content -->
             <div class="grid grid-cols-3 gap-2 m-5">
                 {% for dashboard in dashboards %}
-                    <div class="card bg-base-100 w-96 shadow-sm">
-                        <figure>
+                    <div class="card bg-base-200 w-96 shadow-sm">
+                        <!-- <figure>
                             <img
                             src="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
                             alt="Shoes" />
-                        </figure>
+                        </figure> -->
                         <div class="card-body">
-                            <h2 class="card-title">{{ dashboard.name }}</h2>
-                            <p>{{ dashboard.details }}</p>
+                            <h2 class="card-title">{{ dashboard[3] }}</h2>
+                            <p>{{ dashboard[4] }}</p>
                             <div class="card-actions justify-end">
-                            <button class="btn btn-primary"><i class="fa-solid fa-pencil"></i>Edit</button>
+                                <button class="btn btn-primary"><i class="fa-solid fa-pencil"></i>Edit</button>
                             </div>
                         </div>
                     </div>
                 {% endfor %}
-                <div class="card card-border bg-base-100 w-96 shadow-sm">
+                <div class="card card-border bg-base-200 w-96 shadow-sm">
                     <div class="card-body items-center text-center">
                         <h2 class="card-title">Create a new dashboard</h2>
                         <p>Add a new dashboard for your account</p>
@@ -94,18 +94,25 @@
             <h3 class="text-lg font-bold mb-4">Create a new dashboard</h3>
             <form method="post" action="/api/create-dashboard" class="flex flex-col">
                 <label class="floating-label mb-3">
-                    <span>Dashboard Name</span>
+                    <span>Name</span>
                     <input type="text" placeholder="New Dash" class="input input-md" name="name" />
+                </label>
+                <label class="floating-label mb-3">
+                    <span>Description</span>
+                    <input type="text" placeholder="A super cool dashboard" class="input input-md" name="description" />
                 </label>
                 <select class="select mb-3" name="api">
                     <option disabled selected>Source API</option>
-                    <option>Source 1</option>
-                    <option>Source 2</option>
-                    <option>Source 3</option>
+                    {% for source in sources %}
+                        <option>{{ source[3] }}</option>
+                    {% endfor %}
                 </select>
                 <div class="row">
                     <button class="btn btn-primary"><i class="fa-solid fa-plus"></i>Create</button>
                 </div>
+            </form>
+            <form method="dialog">
+                <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
             </form>
         </div>
     </dialog>
