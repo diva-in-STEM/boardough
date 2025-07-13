@@ -66,5 +66,25 @@ document.getElementById('btnNewSub').onclick = () => {
     label.appendChild(labelText)
     label.appendChild(input)
 
-    subrouteContainer.appendChild(label)
+    const wrapper = document.createElement('div')
+    wrapper.classList.add('flex', 'flex-row', 'w-100')
+
+    const removeBtn = document.createElement('button')
+    removeBtn.type = 'button'
+    removeBtn.classList.add('btn', 'btn-secondary', 'ml-2')
+    removeBtn.onclick = () => removeSubroute(wrapper)
+    
+    const icon = document.createElement('i')
+    icon.classList.add('fa-solid', 'fa-minus')
+
+    removeBtn.appendChild(icon)
+
+    wrapper.appendChild(label)
+    wrapper.appendChild(removeBtn)
+
+    subrouteContainer.appendChild(wrapper)
+}
+
+function removeSubroute(element) {
+    subrouteContainer.removeChild(element)
 }
