@@ -55,8 +55,8 @@
                 {% for source in sources %}
                     <div class="card card-border bg-base-200 w-96 shadow-sm">
                         <div class="card-body">
-                            <h2 class="card-title">{{ source[3] }}</h2>
-                            <p>{{ source[4] }}</p>
+                            <h2 class="card-title">{{ source[2] }}</h2>
+                            <p>{{ source[3] }}</p>
                             <div class="card-actions justify-end">
                                 <button class="btn btn-primary"><i class="fa-solid fa-pencil"></i>Edit</button>
                             </div>
@@ -99,7 +99,7 @@
                 <select class="select mb-3" name="api">
                     <option disabled selected>Source API</option>
                     {% for source in sources %}
-                        <option>{{ source[3] }}</option>
+                        <option>{{ source[2] }}</option>
                     {% endfor %}
                 </select>
                 <div class="row">
@@ -115,16 +115,39 @@
         <div class="modal-box">
             <h3 class="text-lg font-bold mb-4">Add a new source</h3>
             <form method="post" action="/api/create-source" class="flex flex-col">
-                <label class="floating-label mb-3">
-                    <span>Source Name</span>
-                    <input type="text" placeholder="New Source" class="input input-md" name="name" />
-                </label>
-                <label class="floating-label mb-3">
-                    <span>Source Route</span>
-                    <input type="text" placeholder="api.website.com" class="input input-md" name="route" />
-                </label>
-                <div class="row">
-                    <button class="btn btn-primary"><i class="fa-solid fa-plus"></i>Create</button>
+                <ul id="steps" class="steps steps-horizontal mb-4">
+                    <li class="step step-primary">Basic Info</li>
+                    <li class="step">Subroutes</li>
+                    <li class="step">Confirm</li>
+                </ul>
+                <div class="step-page" data-step="0">
+                    <label class="floating-label mb-3">
+                        <span>Source Name</span>
+                        <input type="text" placeholder="New Source" class="input input-md" name="name" />
+                    </label>
+                    <label class="floating-label mb-3">
+                        <span>Source Route</span>
+                        <input type="text" placeholder="api.website.com" class="input input-md" name="route" />
+                    </label>
+                </div>
+                <div class="step-page" data-step="1">
+                    <div id="subroutes" class="overflow-y-auto max-h-50">
+                        <label class="floating-label mb-3">
+                            <span>Subroute 1</span>
+                            <input type="text" placeholder="/data/posts" class="input input-md" name="subroute1" />
+                        </label>
+                    </div>
+                    <button type="button" class="btn btn-secondary" id="btnNewSub"><i class="fa-solid fa-plus"></i></button>
+                </div>
+                <div class="step-page" data-step="2">
+                    <h4 class="w-100 text-center">Please confirm</h4>
+                </div>
+                <div class="modal-action justify-between">
+                    <button type="button" id="btnBack" class="btn btn-outline">Back</button>
+                    <div>
+                        <button type="button" id="btnNext" class="btn">Next</button>
+                        <button type="submit" class="btn btn-primary hidden" id="btnSubmit">Submit</button>
+                    </div>
                 </div>
             </form>
             <form method="dialog">
@@ -132,5 +155,6 @@
             </form>
         </div>
     </dialog>
+    <script src="/static/sources.js"></script>
 </body>
 </html>

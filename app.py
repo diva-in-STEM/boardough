@@ -36,6 +36,13 @@ def close_connection(exception):
     if db is not None:
         db.close()
 
+### Remove for prod
+with app.app_context():
+	try:
+		query_db('insert into users (email, password) values (?, ?)', ('test@example.com', generate_password_hash('abc')))
+	except:
+		print('Test user already exists')
+
 @app.route("/", methods=["GET", "POST"])
 def login():
 	if request.method == "GET":
@@ -87,13 +94,7 @@ def create_dashboard():
 			return redirect('/home')
 		else:
 			userID = session['userID']
-			try:
-				selectedAPI = query_db('select id from sources where name=?', (dashAPI,))[0]
-			except:
-				return redirect('/home')
-			else:
-				print(selectedAPI[0])
-				query_db('insert into dashboards (created_by, name, description, source) values (?, ?, ?, ?)', (userID, dashName, dashDesc, selectedAPI[0]))
+			query_db('insert into dashboards (created_by, name, description, source_name, source_created_by) values (?, ?, ?, ?, ?)', (userID, dashName, dashDesc, dashAPI, userID))
 
 			return redirect('/home')
 	else:
@@ -114,6 +115,13 @@ def create_source():
 				query_db('insert into sources (created_by, name, route) values (?, ?, ?)', (userID, sourceName, sourceRoute))
 			except:
 				return redirect('/sources')
+			else:
+				subroutes = [value for key, value in request.form.items() if key.startswith('subroute')]
+				for subroute in subroutes:
+					try:
+						query_db('insert into subroutes (path, source_name, source_created_by) values (?, ?, ?)', (subroute, sourceName, userID))
+					except:
+						print("Error creating subroute")
 			return redirect('/sources')
 	else:
 		return redirect('/')
