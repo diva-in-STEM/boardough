@@ -104,6 +104,18 @@ def sources_page(error=''):
 		print(f'Error getting sources from database: {e}')
 		return render_template("sources.html", error="Error loading sources from database")
 
+@app.route('/configurator/<dashboardID>')
+def configurator(dashboardID):
+	if 'userID' not in session:
+		return redirect('/')
+	
+	try:
+		dashboard = query_db('select * from dashboards where id=?', (dashboardID,))
+	except Exception as e:
+		return redirect('/home', error=f'Error getting dashboard: {e}')
+	else:
+		return render_template('configurator.html', dashboard=dashboard[0])
+	
 @app.route('/api/create-dashboard', methods=['POST'])
 def create_dashboard():
 	if 'userID' not in session:

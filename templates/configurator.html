@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{url_for('static',filename='dist/output.css')}}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <title>Confiuring {{ dashboard[3] }}</title>
+</head>
+<body>
+    <div class="navbar bg-base-100 shadow-sm">
+        <div class="navbar-center">
+            <a class="btn btn-ghost text-xl">{{ dashboard[3] }}</a>
+        </div>
+    </div>
+    <div class="drawer lg:drawer-open">
+        <input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
+        <div class="drawer-content flex flex-col items-center justify-center">
+            <!-- Page content here -->
+            <label for="my-drawer-2" class="btn btn-primary drawer-button lg:hidden">
+            Open drawer
+            </label>
+        </div>
+        <div class="drawer-side">
+            <label for="my-drawer-2" aria-label="close sidebar" class="drawer-overlay"></label>
+            <ul class="menu bg-base-200 text-base-content min-h-full w-80 p-4">
+            <!-- Sidebar content here -->
+            <li><a>Sidebar Item 1</a></li>
+            <li><a>Sidebar Item 2</a></li>
+            </ul>
+        </div>
+    </div>
+
+</body>
+</html>
