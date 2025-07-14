@@ -1,4 +1,5 @@
 @import "tailwindcss";
-@plugin "daisyui" {
-    themes: lofi --default, business --prefersdark;
-}
+@import "flowbite/src/themes/default";
+@plugin "flowbite/plugin";
+@source "../../node_modules/flowbite";
+@custom-variant dark (&:where(.dark, .dark *));

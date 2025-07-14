@@ -132,7 +132,7 @@ def create_dashboard():
 		userID = session['userID']
 		query_db('insert into dashboards (created_by, name, description, source_name, source_created_by) values (?, ?, ?, ?, ?)', (userID, dashName, dashDesc, dashAPI, userID))
 		
-		return redirect('/dashboards')
+		return redirect('/home')
 		
 	except Exception as e:
 		print(f'Error creating dashboard: {e}')
