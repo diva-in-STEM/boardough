@@ -114,6 +114,8 @@ def configurator(dashboardID):
 	except Exception as e:
 		return redirect('/home', error=f'Error getting dashboard: {e}')
 	else:
+		try:
+			dash_source = query_db('select * from sources where ...') ## COMPLETE HERE
 		return render_template('configurator.html', dashboard=dashboard[0])
 	
 @app.route('/api/create-dashboard', methods=['POST'])
