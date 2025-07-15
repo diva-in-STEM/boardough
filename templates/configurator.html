@@ -16,42 +16,52 @@
     </script>
     <title>Configuring Dashboard {{ dashboard[3] }}</title>
 </head>
-<body class="bg-gray-50 flex h-screen overflow-hidden">
+<body class="bg-gray-50 dark:bg-gray-900 flex h-screen overflow-hidden">
     <!-- Left Sidebar -->
-    <div id="left-sidebar" class="w-64 bg-white shadow-lg border-r border-gray-200 flex flex-col">
+    <div id="left-sidebar" class="w-64 bg-white dark:bg-gray-800 shadow-lg border-r border-gray-200 dark:border-gray-700 flex flex-col">
         <!-- Sidebar Header -->
-        <div class="p-4 border-b border-gray-200">
-            <h2 class="text-lg font-semibold text-gray-800">Dashboard Menu</h2>
+        <div class="p-4 flex border-b border-gray-200 dark:border-gray-700">
+            <a href="/home" class="mr-3 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"><i class="fa-solid fa-right-from-bracket"></i></a>
+            <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Dashboard Menu</h2>
         </div>
         
         <!-- Sidebar Content -->
         <div class="flex-1 overflow-y-auto p-4">
             <nav class="space-y-2">
-                <a href="#" class="flex items-center p-2 text-gray-700 rounded-lg hover:bg-gray-100 group">
-                    <i class="fa-solid fa-home w-5 h-5 text-gray-500 group-hover:text-gray-700"></i>
-                    <span class="ml-3">Home</span>
-                </a>
-                <button type="button" class="w-full flex items-center p-2 text-gray-700 rounded-lg hover:bg-gray-100 group" aria-controls="dropdown-example" data-collapse-toggle="dropdown-example">
-                    <i class="fa-solid fa-network-wired w-5 h-5 text-gray-500 group-hover:text-gray-700"></i>
-                    <span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">Routes</span>
-                    <i class="fa-solid fa-chevron-down w-3 h-3 text-gray-500 group-hover:text-gray-700" aria-hidden="true"></i>
+                <button type="button" class="w-full flex items-center p-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 group" aria-controls="pages-dropdown" data-collapse-toggle="pages-dropdown">
+                    <i class="fa-solid fa-file w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300"></i>
+                    <span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">Pages</span>
+                    <i class="fa-solid fa-chevron-down w-3 h-3 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300" aria-hidden="true"></i>
                 </button>
-                <ul id="dropdown-example" class="hidden py-2 space-y-2">
-                    {{ for subroute in subroutes }}
+                <ul id="pages-dropdown" class="hidden py-2 space-y-2">
+                    <li>
+                        <button type="button" class="ml-4 w-full flex items-center p-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                            <i class="fa-solid fa-house w-3 h-3 mr-3 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300"></i>
+                            Home
+                        </button>
+                    </li>
+                </ul>
+                <button type="button" class="w-full flex items-center p-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 group" aria-controls="routes-dropdown" data-collapse-toggle="routes-dropdown">
+                    <i class="fa-solid fa-network-wired w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300"></i>
+                    <span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">Routes</span>
+                    <i class="fa-solid fa-chevron-down w-3 h-3 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300" aria-hidden="true"></i>
+                </button>
+                <ul id="routes-dropdown" class="hidden py-2 space-y-2">
+                    {% for subroute in subroutes %}
                         <li>
-                            <button type="button" class="w-full flex items-center p-2 text-gray-700 rounded-lg hover:bg-gray-100 group">
-                                <i class="fa-solid fa-plug w-3 h-3 text-gray-500 group-hover:text-gray-700"></i>
-                                {% subroute[1] %}
+                            <button type="button" class="ml-4 w-full flex items-center p-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                                <i class="fa-solid fa-plug w-3 h-3 mr-3 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300"></i>
+                                {{ subroute[1] }}
                             </button>
                         </li>
-                    {{ endfor }}
+                    {% endfor %}
                 </ul>
-                <a href="#" class="flex items-center p-2 text-gray-700 rounded-lg hover:bg-gray-100 group">
-                    <i class="fa-solid fa-users w-5 h-5 text-gray-500 group-hover:text-gray-700"></i>
+                <a href="#" class="flex items-center p-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                    <i class="fa-solid fa-users w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300"></i>
                     <span class="ml-3">Users</span>
                 </a>
-                <a href="#" class="flex items-center p-2 text-gray-700 rounded-lg hover:bg-gray-100 group">
-                    <i class="fa-solid fa-cog w-5 h-5 text-gray-500 group-hover:text-gray-700"></i>
+                <a href="#" class="flex items-center p-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                    <i class="fa-solid fa-cog w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300"></i>
                     <span class="ml-3">Settings</span>
                 </a>
             </nav>
@@ -61,16 +71,13 @@
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col">
         <!-- Header -->
-        <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+        <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-6 py-4">
             <div class="flex items-center justify-between">
-                <h1 class="text-2xl font-bold text-gray-900">{{ dashboard[3] }}</h1>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ dashboard[3] }}</h1>
                 <div class="flex items-center space-x-4">
-                    <button  data-theme-toggle id="theme-toggler" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
+                    <button data-theme-toggle id="theme-toggler" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
                         <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
                         <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
-                    </button>
-                    <button type="button" class="text-gray-500 hover:text-gray-700">
-                        <i class="fa-solid fa-user"></i>
                     </button>
                 </div>
             </div>
@@ -78,8 +85,8 @@
 
         <!-- Drop Zone / Main Content -->
         <main class="flex-1 p-6 overflow-auto">
-            <div id="drop-zone" class="min-h-full border-2 border-dashed border-gray-300 rounded-lg p-8 bg-white relative">
-                <div class="text-center text-gray-500 mb-8" id="drag-instructions">
+            <div id="drop-zone" class="min-h-full border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 bg-white dark:bg-gray-800 relative">
+                <div class="text-center text-gray-500 dark:text-gray-400 mb-8" id="drag-instructions">
                     <i class="fa-solid fa-mouse-pointer text-4xl mb-4"></i>
                     <p class="text-lg">Drag components from the right sidebar to build your dashboard</p>
                 </div>
@@ -93,85 +100,85 @@
     </div>
 
     <!-- Right Sidebar (Component Library) -->
-    <div id="right-sidebar" class="w-20 bg-white shadow-lg border-l border-gray-200 flex flex-col">
+    <div id="right-sidebar" class="w-25 bg-white dark:bg-gray-800 shadow-lg border-l border-gray-200 dark:border-gray-700 flex flex-col">
         
         <!-- Component Icons -->
         <div class="flex-1 overflow-y-auto p-2">
             <div class="space-y-4">
                 <!-- Title Component -->
-                <div class="draggable-component group cursor-move p-3 border-2 border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors" 
+                <div class="draggable-component group cursor-move p-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors" 
                      data-component="title" 
                      data-title="Title Widget" 
                      data-description="">
                     <div class="flex flex-col items-center">
-                        <i class="fa-solid fa-heading text-2xl text-gray-600 group-hover:text-blue-600"></i>
-                        <span class="text-xs mt-1 text-gray-500">Title</span>
+                        <i class="fa-solid fa-heading text-2xl text-gray-600 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400"></i>
+                        <span class="text-xs mt-1 text-gray-500 dark:text-gray-400">Title</span>
                     </div>
                 </div>
 
                 <!-- Chart Component -->
-                <div class="draggable-component group cursor-move p-3 border-2 border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors" 
+                <div class="draggable-component group cursor-move p-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors" 
                      data-component="chart" 
                      data-title="Chart Widget" 
                      data-description="Add interactive charts to your dashboard">
                     <div class="flex flex-col items-center">
-                        <i class="fa-solid fa-chart-line text-2xl text-gray-600 group-hover:text-blue-600"></i>
-                        <span class="text-xs mt-1 text-gray-500">Chart</span>
+                        <i class="fa-solid fa-chart-line text-2xl text-gray-600 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400"></i>
+                        <span class="text-xs mt-1 text-gray-500 dark:text-gray-400">Chart</span>
                     </div>
                 </div>
 
                 <!-- Stats Component -->
-                <div class="draggable-component group cursor-move p-3 border-2 border-gray-200 rounded-lg hover:border-green-400 hover:bg-green-50 transition-colors" 
+                <div class="draggable-component group cursor-move p-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg hover:border-green-400 dark:hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/30 transition-colors" 
                      data-component="stats" 
                      data-title="Statistics" 
                      data-description="Display key metrics and statistics">
                     <div class="flex flex-col items-center">
-                        <i class="fa-solid fa-chart-bar text-2xl text-gray-600 group-hover:text-green-600"></i>
-                        <span class="text-xs mt-1 text-gray-500">Stats</span>
+                        <i class="fa-solid fa-chart-bar text-2xl text-gray-600 dark:text-gray-300 group-hover:text-green-600 dark:group-hover:text-green-400"></i>
+                        <span class="text-xs mt-1 text-gray-500 dark:text-gray-400">Stats</span>
                     </div>
                 </div>
 
                 <!-- Table Component -->
-                <div class="draggable-component group cursor-move p-3 border-2 border-gray-200 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-colors" 
+                <div class="draggable-component group cursor-move p-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg hover:border-purple-400 dark:hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors" 
                      data-component="table" 
                      data-title="Data Table" 
                      data-description="Show data in a structured table format">
                     <div class="flex flex-col items-center">
-                        <i class="fa-solid fa-table text-2xl text-gray-600 group-hover:text-purple-600"></i>
-                        <span class="text-xs mt-1 text-gray-500">Table</span>
+                        <i class="fa-solid fa-table text-2xl text-gray-600 dark:text-gray-300 group-hover:text-purple-600 dark:group-hover:text-purple-400"></i>
+                        <span class="text-xs mt-1 text-gray-500 dark:text-gray-400">Table</span>
                     </div>
                 </div>
 
                 <!-- Calendar Component -->
-                <div class="draggable-component group cursor-move p-3 border-2 border-gray-200 rounded-lg hover:border-orange-400 hover:bg-orange-50 transition-colors" 
+                <div class="draggable-component group cursor-move p-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg hover:border-orange-400 dark:hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/30 transition-colors" 
                      data-component="calendar" 
                      data-title="Calendar" 
                      data-description="Display events and schedules">
                     <div class="flex flex-col items-center">
-                        <i class="fa-solid fa-calendar text-2xl text-gray-600 group-hover:text-orange-600"></i>
-                        <span class="text-xs mt-1 text-gray-500">Calendar</span>
+                        <i class="fa-solid fa-calendar text-2xl text-gray-600 dark:text-gray-300 group-hover:text-orange-600 dark:group-hover:text-orange-400"></i>
+                        <span class="text-xs mt-1 text-gray-500 dark:text-gray-400">Calendar</span>
                     </div>
                 </div>
 
                 <!-- Notes Component -->
-                <div class="draggable-component group cursor-move p-3 border-2 border-gray-200 rounded-lg hover:border-yellow-400 hover:bg-yellow-50 transition-colors" 
+                <div class="draggable-component group cursor-move p-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg hover:border-yellow-400 dark:hover:border-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/30 transition-colors" 
                      data-component="notes" 
                      data-title="Notes" 
                      data-description="Add text notes and reminders">
                     <div class="flex flex-col items-center">
-                        <i class="fa-solid fa-sticky-note text-2xl text-gray-600 group-hover:text-yellow-600"></i>
-                        <span class="text-xs mt-1 text-gray-500">Notes</span>
+                        <i class="fa-solid fa-sticky-note text-2xl text-gray-600 dark:text-gray-300 group-hover:text-yellow-600 dark:group-hover:text-yellow-400"></i>
+                        <span class="text-xs mt-1 text-gray-500 dark:text-gray-400">Notes</span>
                     </div>
                 </div>
 
                 <!-- Weather Component -->
-                <div class="draggable-component group cursor-move p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-400 hover:bg-indigo-50 transition-colors" 
+                <div class="draggable-component group cursor-move p-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors" 
                      data-component="weather" 
                      data-title="Weather" 
                      data-description="Show current weather conditions">
                     <div class="flex flex-col items-center">
-                        <i class="fa-solid fa-cloud-sun text-2xl text-gray-600 group-hover:text-indigo-600"></i>
-                        <span class="text-xs mt-1 text-gray-500">Weather</span>
+                        <i class="fa-solid fa-cloud-sun text-2xl text-gray-600 dark:text-gray-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"></i>
+                        <span class="text-xs mt-1 text-gray-500 dark:text-gray-400">Weather</span>
                     </div>
                 </div>
             </div>

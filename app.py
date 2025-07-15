@@ -110,13 +110,19 @@ def configurator(dashboardID):
 		return redirect('/')
 	
 	try:
-		dashboard = query_db('select * from dashboards where id=?', (dashboardID,))
+		dashboard = query_db('select * from dashboards where id=?', (dashboardID,))[0]
 	except Exception as e:
 		return redirect('/home', error=f'Error getting dashboard: {e}')
 	else:
 		try:
-			dash_source = query_db('select * from sources where ...') ## COMPLETE HERE
-		return render_template('configurator.html', dashboard=dashboard[0])
+			dash_source = query_db('select * from sources where created_by=? and name=?', (session['userID'], dashboard[5]))[0]
+			subroutes = query_db('select * from subroutes where source_name=?', (dash_source[2],))
+		except Exception as e:
+			return redirect('/home', error=f'Error getting subroutes: {e}')
+		else:
+			return render_template('configurator.html', dashboard=dashboard, subroutes=subroutes)
+			
+
 	
 @app.route('/api/create-dashboard', methods=['POST'])
 def create_dashboard():
