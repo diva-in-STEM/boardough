@@ -97,9 +97,12 @@
                     <div class="p-5">
                         <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{{ dashboard[3] }}</h5>
                         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">{{ dashboard[4] }}</p>
-                        <div class="flex justify-end">
-                            <button onclick="location.href = '/configurator/{{ dashboard[0] }}'" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                        <div class="flex w-full justify-between">
+                            <button onclick="openEditModal('{{ dashboard[0] }}', '{{ dashboard[3] }}', '{{ dashboard[4] }}', '{{ dashboard[5] if dashboard[5] else '' }}')" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                                 <i class="fa-solid fa-pencil me-2"></i>Edit
+                            </button>
+                            <button onclick="location.href = '/configurator/{{ dashboard[0] }}'" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                                <i class="fa-solid fa-arrow-up-right-from-square me-2"></i>Configure
                             </button>
                         </div>
                     </div>
@@ -119,7 +122,7 @@
         </div>
     </div>
 
-    <!-- Modal -->
+    <!-- New Dashboard Modal -->
     <div id="new_dash_modal" data-modal-placement="center" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50">
         <div class="relative p-4 w-full max-w-md max-h-full">
             <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
@@ -131,7 +134,7 @@
                         </svg>
                     </button>
                 </div>
-                <form method="post" action="/api/create-dashboard" class="p-4 md:p-5">
+                <form method="post" action="/api/create/dashboard" class="p-4 md:p-5">
                     <div class="grid gap-4 mb-4">
                         <div>
                             <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name</label>
@@ -158,6 +161,69 @@
             </div>
         </div>
     </div>
+
+    <!-- Edit Dashboard Modal -->
+    <div id="edit_source_modal" data-modal-placement="center" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50">
+        <div class="relative p-4 w-full max-w-md max-h-full">
+            <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+                <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                    <h3 id="edit-modal-title" class="text-lg font-semibold text-gray-900 dark:text-white">Updating dashboard</h3>
+                    <button type="button" onclick="document.getElementById('edit_source_modal').classList.add('hidden')" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
+                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                        </svg>
+                    </button>
+                </div>
+                <form method="post" action="/api/update/dashboard" class="p-4 md:p-5">
+                    <input type="hidden" name="dashboard_id" id="edit-dashboard-id">
+                    <div class="grid gap-4 mb-4">
+                        <div>
+                            <label for="edit-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name</label>
+                            <input type="text" name="name" id="edit-name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Dashboard Name" required="">
+                        </div>
+                        <div>
+                            <label for="edit-description" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>
+                            <input type="text" name="description" id="edit-description" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Dashboard Description" required="">
+                        </div>
+                        <div>
+                            <label for="edit-api" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Source API</label>
+                            <select name="api" id="edit-api" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                                <option value="">Select source API</option>
+                                {% for source in sources %}
+                                <option value="{{ source[2] }}">{{ source[2] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                        <i class="fa-solid fa-save me-2"></i>Update
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openEditModal(dashboardId, name, description, api) {
+            // Set the dashboard ID in the hidden input
+            document.getElementById('edit-dashboard-id').value = dashboardId;
+            
+            // Update the modal title
+            document.getElementById('edit-modal-title').textContent = 'Updating dashboard: ' + name;
+            
+            // Fill in the form fields
+            document.getElementById('edit-name').value = name;
+            document.getElementById('edit-description').value = description;
+            
+            // Set the selected API option
+            const apiSelect = document.getElementById('edit-api');
+            apiSelect.value = api;
+            
+            // Show the modal
+            document.getElementById('edit_source_modal').classList.remove('hidden');
+        }
+    </script>
+    
     <script src="/static/themes.js"></script>
 </body>
 </html>

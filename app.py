@@ -124,7 +124,7 @@ def configurator(dashboardID):
 			
 
 	
-@app.route('/api/create-dashboard', methods=['POST'])
+@app.route('/api/create/dashboard', methods=['POST'])
 def create_dashboard():
 	if 'userID' not in session:
 		return redirect('/')
@@ -143,14 +143,9 @@ def create_dashboard():
 		return redirect('/home')
 		
 	except Exception as e:
-		print(f'Error creating dashboard: {e}')
-		try:
-			dashboards = query_db('select * from dashboards where created_by=?', (session['userID'],))
-			return home(error="Error creating dashboard")
-		except:
-			return home(error="Error creating dashboard")
+		return home(error=f'Error creating dashboard: {e}')
 
-@app.route('/api/create-source', methods=["POST"])
+@app.route('/api/create/source', methods=["POST"])
 def create_source():
 	if 'userID' not in session:
 		return redirect('/')
@@ -198,6 +193,19 @@ def create_source():
 			return render_template("sources.html", sources=sources, error="Error creating source")
 		except:
 			return render_template("sources.html", sources=[], error="Error creating source")
+
+@app.route('/api/update/dashboard/<dashboardID>')
+def update_dashboard(dashboardID):
+	if 'userID' in session:
+		try:
+			dashName = request.form.get('edit-name')
+			dashDesc = request.form.get('edit-description')
+			dashAPI = request.form.get('edit-api')
+		except Exception as e:
+			return redirect('/home', error=f"Error updating dash: {e}")
+		else:
+			try:
+				query_db('update dashboards set name = ?, desc = ?, source_name = ? where created_by = ? and name = ?')
 
 if __name__ == '__main__':
 	app.run(debug=True)
