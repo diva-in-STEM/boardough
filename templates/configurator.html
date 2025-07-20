@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js"></script>
     <script>
-        // On page load or when changing themes, best to add inline in `head` to avoid FOUC
+        // Theme handling
         if (localStorage.getItem('color-theme') === 'dark' || (!localStorage.getItem('color-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         } else {
@@ -19,13 +19,11 @@
 <body class="bg-gray-50 dark:bg-gray-900 flex h-screen overflow-hidden">
     <!-- Left Sidebar -->
     <div id="left-sidebar" class="w-64 bg-white dark:bg-gray-800 shadow-lg border-r border-gray-200 dark:border-gray-700 flex flex-col">
-        <!-- Sidebar Header -->
         <div class="p-4 flex border-b border-gray-200 dark:border-gray-700">
             <a href="/home" class="mr-3 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"><i class="fa-solid fa-right-from-bracket"></i></a>
             <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Dashboard Menu</h2>
         </div>
         
-        <!-- Sidebar Content -->
         <div class="flex-1 overflow-y-auto p-4">
             <nav class="space-y-2">
                 <button type="button" class="w-full flex items-center p-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 group" aria-controls="pages-dropdown" data-collapse-toggle="pages-dropdown">
@@ -73,7 +71,10 @@
         <!-- Header -->
         <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-6 py-4">
             <div class="flex items-center justify-between">
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ dashboard[3] }}</h1>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Dashboard Builder</h1>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Drag widgets from the sidebar and resize them by hovering over the edges</p>
+                </div>
                 <div class="flex items-center space-x-4">
                     <button data-theme-toggle id="theme-toggler" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
                         <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
@@ -89,10 +90,10 @@
                 <div class="text-center text-gray-500 dark:text-gray-400 mb-8" id="drag-instructions">
                     <i class="fa-solid fa-mouse-pointer text-4xl mb-4"></i>
                     <p class="text-lg">Drag components from the right sidebar to build your dashboard</p>
+                    <p class="text-sm mt-2 opacity-75">Hover over cards to see resize handles</p>
                 </div>
                 
-                <!-- Grid Container for Cards -->
-                <div id="card-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div id="card-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 grid-rows-4 gap-6">
                     <!-- Cards will be dynamically added here -->
                 </div>
             </div>
@@ -100,91 +101,16 @@
     </div>
 
     <!-- Right Sidebar (Component Library) -->
-    <div id="right-sidebar" class="w-25 bg-white dark:bg-gray-800 shadow-lg border-l border-gray-200 dark:border-gray-700 flex flex-col">
-        
-        <!-- Component Icons -->
-        <div class="flex-1 overflow-y-auto p-2">
-            <div class="space-y-4">
-                <!-- Title Component -->
-                <div class="draggable-component group cursor-move p-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors" 
-                     data-component="title" 
-                     data-title="Title Widget" 
-                     data-description="">
-                    <div class="flex flex-col items-center">
-                        <i class="fa-solid fa-heading text-2xl text-gray-600 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400"></i>
-                        <span class="text-xs mt-1 text-gray-500 dark:text-gray-400">Title</span>
-                    </div>
-                </div>
-
-                <!-- Chart Component -->
-                <div class="draggable-component group cursor-move p-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors" 
-                     data-component="chart" 
-                     data-title="Chart Widget" 
-                     data-description="Add interactive charts to your dashboard">
-                    <div class="flex flex-col items-center">
-                        <i class="fa-solid fa-chart-line text-2xl text-gray-600 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400"></i>
-                        <span class="text-xs mt-1 text-gray-500 dark:text-gray-400">Chart</span>
-                    </div>
-                </div>
-
-                <!-- Stats Component -->
-                <div class="draggable-component group cursor-move p-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg hover:border-green-400 dark:hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/30 transition-colors" 
-                     data-component="stats" 
-                     data-title="Statistics" 
-                     data-description="Display key metrics and statistics">
-                    <div class="flex flex-col items-center">
-                        <i class="fa-solid fa-chart-bar text-2xl text-gray-600 dark:text-gray-300 group-hover:text-green-600 dark:group-hover:text-green-400"></i>
-                        <span class="text-xs mt-1 text-gray-500 dark:text-gray-400">Stats</span>
-                    </div>
-                </div>
-
-                <!-- Table Component -->
-                <div class="draggable-component group cursor-move p-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg hover:border-purple-400 dark:hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors" 
-                     data-component="table" 
-                     data-title="Data Table" 
-                     data-description="Show data in a structured table format">
-                    <div class="flex flex-col items-center">
-                        <i class="fa-solid fa-table text-2xl text-gray-600 dark:text-gray-300 group-hover:text-purple-600 dark:group-hover:text-purple-400"></i>
-                        <span class="text-xs mt-1 text-gray-500 dark:text-gray-400">Table</span>
-                    </div>
-                </div>
-
-                <!-- Calendar Component -->
-                <div class="draggable-component group cursor-move p-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg hover:border-orange-400 dark:hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/30 transition-colors" 
-                     data-component="calendar" 
-                     data-title="Calendar" 
-                     data-description="Display events and schedules">
-                    <div class="flex flex-col items-center">
-                        <i class="fa-solid fa-calendar text-2xl text-gray-600 dark:text-gray-300 group-hover:text-orange-600 dark:group-hover:text-orange-400"></i>
-                        <span class="text-xs mt-1 text-gray-500 dark:text-gray-400">Calendar</span>
-                    </div>
-                </div>
-
-                <!-- Notes Component -->
-                <div class="draggable-component group cursor-move p-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg hover:border-yellow-400 dark:hover:border-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/30 transition-colors" 
-                     data-component="notes" 
-                     data-title="Notes" 
-                     data-description="Add text notes and reminders">
-                    <div class="flex flex-col items-center">
-                        <i class="fa-solid fa-sticky-note text-2xl text-gray-600 dark:text-gray-300 group-hover:text-yellow-600 dark:group-hover:text-yellow-400"></i>
-                        <span class="text-xs mt-1 text-gray-500 dark:text-gray-400">Notes</span>
-                    </div>
-                </div>
-
-                <!-- Weather Component -->
-                <div class="draggable-component group cursor-move p-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors" 
-                     data-component="weather" 
-                     data-title="Weather" 
-                     data-description="Show current weather conditions">
-                    <div class="flex flex-col items-center">
-                        <i class="fa-solid fa-cloud-sun text-2xl text-gray-600 dark:text-gray-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"></i>
-                        <span class="text-xs mt-1 text-gray-500 dark:text-gray-400">Weather</span>
-                    </div>
-                </div>
-            </div>
+    <div id="right-sidebar" class="w-64 bg-white dark:bg-gray-800 shadow-lg border-l border-gray-200 dark:border-gray-700 flex flex-col">
+        <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+            <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Components</h2>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Drag to add, hover to resize</p>
+        </div>
+        <div class="flex-1 overflow-y-auto p-4" id="component-library">
+            <!-- Components will be dynamically generated -->
         </div>
     </div>
-    <script src="/static/themes.js"></script>
+
     <script src="/static/configurator.js"></script>
 </body>
 </html>

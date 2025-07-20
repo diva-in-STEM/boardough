@@ -357,7 +357,6 @@ def delete_source(sourceName, sourceCreatedBy):
         try:
             # Check if source exists
             source = query_db('SELECT * FROM sources WHERE name = ? and created_by = ?', (sourceName, sourceCreatedBy), one=True)
-            print(source, sourceName, sourceCreatedBy)
             if source is None:
                 return redirect('/sources?error=Source not found')
             
