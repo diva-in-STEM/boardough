@@ -1,8 +1,8 @@
 // Card type configurations - easy to modify and extend
 const CARD_TYPES = {
-    title: {
-        title: 'Title Widget',
-        description: 'Add a large heading to your dashboard',
+    text: {
+        title: 'Text Widget',
+        description: 'Add a text to your dashboard',
         icon: 'fa-heading',
         span: 'col-span-full',
         showHeader: false,
@@ -10,9 +10,9 @@ const CARD_TYPES = {
         defaultSize: { cols: 4, rows: 1 },
         content: {
             type: 'editable',
-            placeholder: 'Click to edit title...',
-            classes: 'text-3xl font-bold text-gray-900 dark:text-white text-center py-4',
-            defaultText: 'Dashboard Title'
+            placeholder: 'Click to edit text...',
+            classes: 'text-3xl font-bold text-gray-900 dark:text-white text-center py-4 text-wrap flex align-center justify-center',
+            defaultText: 'Some Text'
         }
     },
     chart: {
@@ -73,28 +73,12 @@ const CARD_TYPES = {
         span: 'col-span-1',
         showHeader: true,
         hoverColor: 'yellow',
-        defaultSize: { cols: 1, rows: 2 },
+        defaultSize: { cols: 1, rows: 1 },
         content: {
             type: 'editable',
             placeholder: 'Click to add your notes...',
             classes: 'bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded p-3 text-sm text-gray-700 dark:text-gray-300 min-h-[100px] resize-none',
             defaultText: 'Sample note content...'
-        }
-    },
-    weather: {
-        title: 'Weather',
-        description: 'Show current weather conditions',
-        icon: 'fa-cloud-sun',
-        span: 'col-span-1',
-        showHeader: true,
-        hoverColor: 'indigo',
-        defaultSize: { cols: 1, rows: 1 },
-        content: {
-            type: 'weather',
-            temperature: '22°C',
-            condition: 'Sunny',
-            icon: 'fa-sun',
-            iconColor: 'text-yellow-500'
         }
     }
 };
@@ -107,83 +91,83 @@ let resizeState = { isResizing: false, currentCard: null, startX: 0, startCols: 
 const grid = document.getElementById('card-grid');
 
 document.addEventListener('DOMContentLoaded', () => {
-  generateComponentLibrary();
-  initializeDragAndDrop();
-  initThemeToggle();
-  // Initialize resize for any existing cards
-  document.querySelectorAll('.resizable-card').forEach(card => initializeCardResize(card));
+generateComponentLibrary();
+initializeDragAndDrop();
+initThemeToggle();
+// Initialize resize for any existing cards
+document.querySelectorAll('.resizable-card').forEach(card => initializeCardResize(card));
 });
 
 // Create resize handles (only horizontal)
 function createResizeHandles() {
-  const resizeHandles = document.createElement('div');
-  resizeHandles.className = 'resize-handles opacity-0 group-hover:opacity-100 transition-opacity duration-200';
-  resizeHandles.innerHTML = `
+const resizeHandles = document.createElement('div');
+resizeHandles.className = 'resize-handles opacity-0 group-hover:opacity-100 transition-opacity duration-200';
+resizeHandles.innerHTML = `
     <div class="resize-handle resize-handle-right" data-resize-type="width"></div>
-  `;
-  return resizeHandles;
+`;
+return resizeHandles;
 }
 
 // Attach resize handlers to a card
 function initializeCardResize(card) {
-  const handles = card.querySelectorAll('.resize-handle');
-  handles.forEach(handle => {
+const handles = card.querySelectorAll('.resize-handle');
+handles.forEach(handle => {
     if (handle.dataset.resizeType === 'width') {
-      handle.addEventListener('mousedown', e => startResize(e, card));
+    handle.addEventListener('mousedown', e => startResize(e, card));
     }
-  });
+});
 }
 
 // Start horizontal resize
 function startResize(e, card) {
-  e.preventDefault();
-  e.stopPropagation();
-  resizeState = {
+e.preventDefault();
+e.stopPropagation();
+resizeState = {
     isResizing: true,
     currentCard: card,
     startX: e.clientX,
     startCols: parseInt(card.dataset.cols, 10) || 1
-  };
-  document.addEventListener('mousemove', handleResize);
-  document.addEventListener('mouseup', endResize);
+};
+document.addEventListener('mousemove', handleResize);
+document.addEventListener('mouseup', endResize);
 }
 
 // Handle horizontal resize movement
 function handleResize(e) {
-  if (!resizeState.isResizing) return;
-  const { startX, startCols, currentCard } = resizeState;
-  const deltaX = e.clientX - startX;
-  const colWidth = grid.offsetWidth / MAX_COLUMNS;
-  const newCols = Math.min(MAX_COLUMNS, Math.max(1, startCols + Math.round(deltaX / colWidth)));
-  if (newCols !== startCols) {
+if (!resizeState.isResizing) return;
+const { startX, startCols, currentCard } = resizeState;
+const deltaX = e.clientX - startX;
+const colWidth = grid.offsetWidth / MAX_COLUMNS;
+const newCols = Math.min(MAX_COLUMNS, Math.max(1, startCols + Math.round(deltaX / colWidth)));
+if (newCols !== startCols) {
     currentCard.dataset.cols = newCols;
     currentCard.style.gridColumnEnd = `span ${newCols}`;
-  }
+}
 }
 
 // End horizontal resize
 function endResize() {
-  document.removeEventListener('mousemove', handleResize);
-  document.removeEventListener('mouseup', endResize);
-  resizeState.isResizing = false;
+document.removeEventListener('mousemove', handleResize);
+document.removeEventListener('mouseup', endResize);
+resizeState.isResizing = false;
 }
 
 // Create a new card (horizontal resizing only)
 function createCard(type) {
-  const config = CARD_TYPES[type];
-  if (!config) return;
-  const cols = config.defaultSize.cols;
-  const card = document.createElement('div');
-  card.className = 'resizable-card relative group';
-  card.dataset.cardType = type;
-  card.dataset.cols = cols;
-  card.style.gridColumnEnd = `span ${cols}`;
+const config = CARD_TYPES[type];
+if (!config) return;
+const cols = config.defaultSize.cols;
+const card = document.createElement('div');
+card.className = 'resizable-card relative group';
+card.dataset.cardType = type;
+card.dataset.cols = cols;
+card.style.gridColumnEnd = `span ${cols}`;
 
-  // Add content (not shown) and horizontal resize handle
-  const handles = createResizeHandles();
-  card.appendChild(handles);
-  initializeCardResize(card);
-  grid.appendChild(card);
+// Add content (not shown) and horizontal resize handle
+const handles = createResizeHandles();
+card.appendChild(handles);
+initializeCardResize(card);
+grid.appendChild(card);
 }
 
 
@@ -193,11 +177,11 @@ const CONTENT_RENDERERS = {
     
     editable: (config) => `
         <div contenteditable="true" 
-             class="${config.classes}" 
-             data-placeholder="${config.placeholder}"
-             onclick="handleEditableClick(this)"
-             onblur="handleEditableBlur(this)"
-             onkeydown="handleEditableKeydown(event)">${config.defaultText}</div>
+            class="${config.classes}" 
+            data-placeholder="${config.placeholder}"
+            onclick="handleEditableClick(this)"
+            onblur="handleEditableBlur(this)"
+            onkeydown="handleEditableKeydown(event)">${config.defaultText}</div>
     `,
     
     stats: (config) => {
@@ -226,17 +210,7 @@ const CONTENT_RENDERERS = {
                 </table>
             </div>
         `;
-    },
-    
-    weather: (config) => `
-        <div class="flex items-center justify-center py-4">
-            <div class="text-center">
-                <i class="fas ${config.icon} text-3xl ${config.iconColor}"></i>
-                <div class="text-lg font-semibold dark:text-white mt-2">${config.temperature}</div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">${config.condition}</div>
-            </div>
-        </div>
-    `
+    }
 };
 
 // Generate component library from CARD_TYPES
@@ -248,7 +222,7 @@ function generateComponentLibrary() {
         const config = CARD_TYPES[type];
         const componentHtml = `
             <div class="draggable-component mb-3 group cursor-move p-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg hover:border-${config.hoverColor}-400 dark:hover:border-${config.hoverColor}-500 hover:bg-${config.hoverColor}-50 dark:hover:bg-${config.hoverColor}-900/30 transition-colors" 
-                 data-component="${type}">
+                data-component="${type}">
                 <div class="flex flex-col items-center">
                     <i class="fa-solid ${config.icon} text-2xl text-gray-600 dark:text-gray-300 group-hover:text-${config.hoverColor}-600 dark:group-hover:text-${config.hoverColor}-400"></i>
                     <span class="text-xs mt-1 text-gray-500 dark:text-gray-400">${config.title.replace(' Widget', '').replace(' Data', '')}</span>
@@ -297,7 +271,14 @@ function handleDrop(e) {
     
     if (draggedElement) {
         const componentType = draggedElement.dataset.component;
-        createCard(componentType);
+        const newCard = createCard(componentType);
+        
+        // Show customization modal for stats and chart cards
+        if (componentType === 'stats' || componentType === 'chart') {
+            setTimeout(() => {
+                showCustomizationModal(componentType, newCard);
+            }, 100);
+        }
         
         const instructions = document.getElementById('drag-instructions');
         if (instructions) {
@@ -444,7 +425,7 @@ function createCard(type) {
                         <i class="fas fa-edit"></i>
                     </button>
                     <button class="text-gray-400 hover:text-red-600" onclick="deleteCard(this)">
-                        <i class="fas fa-trash"></i>
+                        <i class="fas fa-times"></i>
                     </button>
                 </div>
             </div>
@@ -475,6 +456,7 @@ function createCard(type) {
     
     // Initialize resize functionality for this card
     initializeCardResize(card);
+    return card;
 }
 
 function renderCardContent(contentConfig) {
@@ -515,34 +497,36 @@ function handleEditableKeydown(event) {
 function editCard(button) {
     const card = button.closest('[data-card-type]');
     const cardType = card.dataset.cardType;
-    const config = CARD_TYPES[cardType];
     
-    if (!config) return;
-    
-    const title = card.querySelector('h3').textContent;
-    const newTitle = prompt('Enter new title:', title);
-    if (newTitle) {
-        card.querySelector('h3').textContent = newTitle;
+    if (cardType === 'stats' || cardType === 'chart') {
+        showCustomizationModal(cardType, card);
+    } else {
+        const config = CARD_TYPES[cardType];
+        if (!config) return;
+        
+        const title = card.querySelector('h3').textContent;
+        const newTitle = prompt('Enter new title:', title);
+        if (newTitle) {
+            card.querySelector('h3').textContent = newTitle;
+        }
     }
 }
 
 function deleteCard(button) {
     const card = button.closest('[data-card-type]');
-    if (confirm('Are you sure you want to delete this card?')) {
-        card.remove();
+    card.remove();
         
-        // Show instructions again if no cards remain
-        const cardGrid = document.getElementById('card-grid');
-        if (cardGrid.children.length === 0) {
-            const dropZone = document.getElementById('drop-zone');
-            const instructionsHtml = `
-                <div class="text-center text-gray-500 dark:text-gray-400 mb-8" id="drag-instructions">
-                    <i class="fa-solid fa-mouse-pointer text-4xl mb-4"></i>
-                    <p class="text-lg">Drag components from the right sidebar to build your dashboard</p>
-                </div>
-            `;
-            dropZone.insertAdjacentHTML('afterbegin', instructionsHtml);
-        }
+    // Show instructions again if no cards remain
+    const cardGrid = document.getElementById('card-grid');
+    if (cardGrid.children.length === 0) {
+        const dropZone = document.getElementById('drop-zone');
+        const instructionsHtml = `
+            <div class="text-center text-gray-500 dark:text-gray-400 mb-8" id="drag-instructions">
+                <i class="fa-solid fa-mouse-pointer text-4xl mb-4"></i>
+                <p class="text-lg">Drag components from the right sidebar to build your dashboard</p>
+            </div>
+        `;
+        dropZone.insertAdjacentHTML('afterbegin', instructionsHtml);
     }
 }
 
@@ -625,37 +609,6 @@ style.textContent = `
         border-radius: 4px 0 0 4px;
     }
     
-    /* Bottom edge handle */
-    .resize-handle-bottom {
-        left: 20%;
-        bottom: -4px;
-        width: 60%;
-        height: 8px;
-        cursor: ns-resize;
-        border-radius: 4px 4px 0 0;
-    }
-    
-    /* Corner handle */
-    .resize-handle-corner {
-        right: -4px;
-        bottom: -4px;
-        width: 16px;
-        height: 16px;
-        cursor: nw-resize;
-        border-radius: 4px 0 0 0;
-    }
-    
-    .resize-handle-corner::after {
-        content: '';
-        position: absolute;
-        right: 2px;
-        bottom: 2px;
-        width: 0;
-        height: 0;
-        border-left: 6px solid transparent;
-        border-bottom: 6px solid rgba(59, 130, 246, 0.6);
-    }
-    
     /* Visual feedback during resize */
     .resizing {
         transition: none !important;
@@ -680,13 +633,6 @@ style.textContent = `
     
     .row-span-2 { grid-row: span 2 / span 2; }
     .row-span-3 { grid-row: span 3 / span 3; }
-    
-    /* Grid layout improvements */
-    #card-grid {
-        grid-auto-rows: minmax(150px, auto);
-        align-items: start;
-        gap: 1rem;
-    }
     
     /* Card content improvements */
     .card-content {
@@ -722,3 +668,315 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+// Modal functionality
+let currentCustomizingCard = null;
+let dashboardSource = [];
+let subroutes = [];
+
+// Initialize data when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        const dashboardSourceElement = document.getElementById('dashboard-sources');
+        const subroutesElement = document.getElementById('subroutes-data');
+        
+        dashboardSource = dashboardSourceElement ? JSON.parse(dashboardSourceElement.textContent) : [];
+        subroutes = subroutesElement ? JSON.parse(subroutesElement.textContent) : [];
+    } catch (e) {
+        console.warn('Error parsing template data:', e);
+        dashboardSource = [];
+        subroutes = [];
+    }
+    
+    console.log('Dashboard sources:', dashboardSource);
+    console.log('Subroutes:', subroutes);
+    
+    // Existing initialization code
+    generateComponentLibrary();
+    initializeDragAndDrop();
+    initThemeToggle();
+});
+
+function showCustomizationModal(cardType, card) {
+    currentCustomizingCard = card;
+    const modal = document.getElementById('customization-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalContent = document.getElementById('modal-content');
+    
+    modalTitle.textContent = `Setup ${CARD_TYPES[cardType].title}`;
+    
+    if (cardType === 'stats') {
+        modalContent.innerHTML = generateStatsModalContent();
+    } else if (cardType === 'chart') {
+        modalContent.innerHTML = generateChartModalContent();
+    }
+    
+    modal.classList.remove('hidden');
+}
+
+function closeCustomizationModal() {
+    const modal = document.getElementById('customization-modal');
+    modal.classList.add('hidden');
+    currentCustomizingCard = null;
+}
+
+function generateStatsModalContent() {
+    const subrouteOptions = subroutes.map(subroute =>
+        `<option value="${subroute[1]}">${subroute[1]}</option>`
+    ).join('');
+
+    return `
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Data Source</label>
+                <select id="stats-source" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" onchange="updateSubrouteOptions('stats')">
+                    <option value="">Select a source...</option>
+                    <option value="${dashboardSource[3]}">${dashboardSource[2]}</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Endpoint</label>
+                <select id="stats-subroute-left" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" disabled="true">
+                    <option value="">Subroute for the left stat</option>
+                    ${subrouteOptions}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Left Label</label>
+                <input type="text" id="stats-left-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" placeholder="e.g., count, total, value">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Endpoint</label>
+                <select id="stats-subroute-right" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white subroute-selector" disabled="true">
+                    <option value="">Subroute for the right stat</option>
+                    ${subrouteOptions}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Right Label</label>
+                <input type="text" id="stats-right-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" placeholder="e.g., name, category, type">
+            </div>
+        </div>
+    `;
+}
+
+function generateChartModalContent() {
+    return `
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Data Source</label>
+                <select id="chart-source" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" onchange="updateSubrouteOptions('chart')">
+                    <option value="">Select a source...</option>
+                    ${dashboardSource}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Endpoint</label>
+                <select id="chart-subroute" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white subroute-selector" disabled>
+                    <option value="">Select an endpoint...</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Chart Type</label>
+                <select id="chart-type" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
+                    <option value="line">Line Chart</option>
+                    <option value="bar">Bar Chart</option>
+                    <option value="pie">Pie Chart</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">X-Axis Field</label>
+                <input type="text" id="chart-x-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" placeholder="e.g., date, category, name">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Y-Axis Field</label>
+                <input type="text" id="chart-y-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" placeholder="e.g., value, count, amount">
+            </div>
+        </div>
+    `;
+}
+
+function updateSubrouteOptions(widgetType) {
+    const sourceSelect = document.getElementById(`${widgetType}-source`);
+    const leftSubrouteSelector = document.getElementById('stats-subroute-left');
+    const rightSubrouteSelector = document.getElementById('stats-subroute-right');
+    const selectedSource = sourceSelect.value;
+    
+    // Clear and disable subroute select
+    leftSubrouteSelector.disabled = false;
+    rightSubrouteSelector.disabled = false;
+    
+    if (!selectedSource) return;
+    
+    // Find matching subroutes for the selected source
+    // Assuming subroute tuple structure: [id, path, source_name, source_created_by]
+    const matchingSubroutes = subroutes.filter(subroute => 
+        subroute[2] === selectedSource
+    );
+    
+    if (matchingSubroutes.length > 0) {
+        matchingSubroutes.forEach(subroute => {
+            const option = document.createElement('option');
+            option.value = subroute[1]; // path is at index 1
+            option.textContent = subroute[1];
+            subrouteSelect.appendChild(option);
+        });
+        subrouteSelect.disabled = false;
+    }
+}
+
+async function applyCustomization() {
+    if (!currentCustomizingCard) return;
+    
+    const cardType = currentCustomizingCard.dataset.cardType;
+    
+    if (cardType === 'stats') {
+        await applyStatsCustomization();
+    } else if (cardType === 'chart') {
+        await applyChartCustomization();
+    }
+    
+    closeCustomizationModal();
+}
+
+async function applyStatsCustomization() {
+    const sourceName = document.getElementById('stats-source').value;
+    const leftSubroutePath = document.getElementById('stats-subroute-left').value;
+    const rightSubroutePath = document.getElementById('stats-subroute-right').value;
+    const leftField = document.getElementById('stats-left-field').value;
+    const rightField = document.getElementById('stats-right-field').value;
+    console.log(leftSubroutePath, rightSubroutePath)
+    
+    if (!sourceName || !leftSubroutePath || !rightSubroutePath) {
+        alert('Please select both a source and endpoint');
+        return;
+    }
+    
+    // Find the source route
+    const source = dashboardSource
+    if (!source) {
+        alert('Source not found');
+        return;
+    }
+    
+    // Construct the API URL
+    const leftApiUrl = `${source[3]}${leftSubroutePath}`;
+    const rightApiUrl = `${source[3]}${rightSubroutePath}`;
+    
+    try {
+        const responseLeft = await fetch(leftApiUrl);
+        if (!responseLeft.ok) {
+            throw new Error(`HTTP error! status: ${responseLeft.status}`);
+        }
+
+        const responseRight = await fetch(rightApiUrl);
+        if (!responseRight.ok) {
+            throw new Error(`HTTP error! status: ${responseRight.status}`);
+        }
+        
+        const leftData = await responseLeft.json();
+        const rightData = await responseRight.json();
+        console.log('Stats data fetched:', leftData, rightData);
+        
+        // Update the card content with fetched data
+        updateStatsCard(currentCustomizingCard, leftData, rightData, leftField, rightField);
+        
+    } catch (error) {
+        console.error('Error fetching stats data:', error);
+        alert('Failed to fetch data. Check console for details.');
+    }
+}
+
+async function applyChartCustomization() {
+    const sourceName = document.getElementById('chart-source').value;
+    const subroutePath = document.getElementById('chart-subroute').value;
+    const chartType = document.getElementById('chart-type').value;
+    const xField = document.getElementById('chart-x-field').value;
+    const yField = document.getElementById('chart-y-field').value;
+    
+    if (!sourceName || !subroutePath) {
+        alert('Please select both a source and endpoint');
+        return;
+    }
+    
+    // Find the source route - source tuple structure: [name, route, ...]
+    const source = dashboardSource.find(s => s[0] === sourceName);
+    if (!source) {
+        alert('Source not found');
+        return;
+    }
+    
+    // Construct the API URL - route is at index 1
+    const apiUrl = `${source[3]}${subroutePath}`;
+    
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Chart data fetched:', data);
+        
+        // Update the card content with fetched data
+        updateChartCard(currentCustomizingCard, data, chartType, xField, yField);
+        
+    } catch (error) {
+        console.error('Error fetching chart data:', error);
+        alert('Failed to fetch data. Check console for details.');
+    }
+}
+
+function updateStatsCard(card, leftData, rightData, leftField, rightField) {
+    const cardContent = card.querySelector('.card-content');
+    
+    // Simple stats update - you can enhance this based on your data structure
+    let statsHtml = '';
+    
+    if (Array.isArray(leftData)) {        
+        statsHtml = `
+            <div class="grid grid-cols-2 gap-4">
+                <div class="text-center py-2">
+                    <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">${leftData.length}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">${leftField}</div>
+                </div>
+                <div class="text-center py-2">
+                    <div class="text-2xl font-bold text-green-600 dark:text-green-400">${rightData.length}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">${rightField}</div>
+                </div>
+            </div>
+        `;
+    } else {
+        // If data is an object, show individual metrics
+        const metricValue = leftData[leftField] || 'N/A';
+        const labelValue = leftData[rightField] || 'Metric';
+        
+        statsHtml = `
+            <div class="text-center py-4">
+                <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">${metricValue}</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400 mt-2">${labelValue}</div>
+            </div>
+        `;
+    }
+    
+    cardContent.innerHTML = statsHtml;
+}
+
+function updateChartCard(card, data, chartType, xField, yField) {
+    const cardContent = card.querySelector('.card-content');
+    
+    // Simple chart placeholder update - you would integrate with actual charting library here
+    const dataPreview = Array.isArray(data) ? data.slice(0, 3) : [data];
+    const previewText = dataPreview.map(item => 
+        `${item[xField]}: ${item[yField]}`
+    ).join(', ');
+    
+    cardContent.innerHTML = `
+        <div class="py-8 bg-gray-100 dark:bg-gray-700 rounded flex flex-col items-center justify-center">
+            <i class="fas fa-chart-${chartType === 'pie' ? 'pie' : chartType === 'bar' ? 'bar' : 'line'} text-4xl text-gray-400 mb-2"></i>
+            <div class="text-sm text-gray-600 dark:text-gray-400 text-center">
+                <div>Type: ${chartType.charAt(0).toUpperCase() + chartType.slice(1)} Chart</div>
+                <div class="mt-1">Data: ${previewText}${data.length > 3 ? '...' : ''}</div>
+            </div>
+        </div>
+    `;
+}

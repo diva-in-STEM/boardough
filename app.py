@@ -121,7 +121,7 @@ def configurator(dashboardID):
 		except Exception as e:
 			return redirect('/home', error=f'Error getting subroutes: {e}')
 		else:
-			return render_template('configurator.html', dashboard=dashboard, subroutes=subroutes)
+			return render_template('configurator.html', dashboard=dashboard, source=dash_source, subroutes=subroutes)
 			
 
 	

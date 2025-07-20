@@ -13,110 +13,11 @@
         if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         } else {
-            document.documentElement.classList.remove('dark')
+            document.documentElement.classList.remove('dark');
         }
     </script>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900">
-    <!-- Sidebar -->
-    <aside id="default-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
-        <div class="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
-            <ul class="space-y-2 font-medium">
-                <li>
-                    <button onclick="location.href = '/home'" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group w-full">
-                        <i class="fa-solid fa-chart-line w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"></i>
-                        <span class="ms-3">Dashboards</span>
-                    </button>
-                </li>
-                <li>
-                    <button disabled class="flex items-center py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 w-full">
-                        <i class="fa-solid fa-database w-5 h-5 text-white transition duration-75 dark:text-white group-hover:text-white dark:group-hover:text-white"></i>
-                        <span class="ms-3">Sources</span>
-                    </button>
-                </li>
-                <li>
-                    <button onclick="document.getElementById('new_dash_modal').classList.remove('hidden')" class="flex items-center p-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 group w-full">
-                        <i class="fa-solid fa-plus w-5 h-5 text-white"></i>
-                        <span class="ms-3">New Dashboard</span>
-                    </button>
-                </li>
-            </ul>
-        </div>
-    </aside>
-
-    <!-- Main Content -->
-    <div class="p-4 sm:ml-64">
-        <!-- Navbar -->
-        <nav class="bg-white border-gray-200 dark:bg-gray-900 mb-4">
-            <div class="flex flex-wrap items-center justify-between pl-0 pr-4 py-4">
-                <div class="flex items-center rtl:space-x-reverse">
-                    <button data-drawer-target="default-sidebar" data-drawer-toggle="default-sidebar" aria-controls="default-sidebar" type="button" class="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
-                        <span class="sr-only">Open sidebar</span>
-                        <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
-                        </svg>
-                    </button>
-                    <h3 class="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">Sources</h3>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <!-- Theme Toggle -->
-                    <button  data-theme-toggle id="theme-toggler" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
-                        <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-                        <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
-                    </button>
-                    <!-- Logout Button -->
-                    <button onclick="location.href='/logout'" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
-                        <i class="fa-solid fa-user-minus text-xl"></i>
-                    </button>
-                </div>
-            </div>
-        </nav>
-
-        <!-- Toast Notification -->
-        {% if error %}
-        <div id="toast-danger" class="fixed top-5 right-5 flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800" role="alert">
-            <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-red-500 bg-red-100 rounded-lg dark:bg-red-800 dark:text-red-200">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-            </div>
-            <div class="ms-3 text-sm font-normal">{{ error }}</div>
-            <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" data-dismiss-target="#toast-danger" aria-label="Close">
-                <span class="sr-only">Close</span>
-                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-                </svg>
-            </button>
-        </div>
-        {% endif %}
-
-        <!-- Sources Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
-            {% for source in sources %}
-            <div class="max-w-sm bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-                <div class="p-5">
-                    <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{{ source[2] }}</h5>
-                    <p class="mb-3 font-normal text-wrap wrap-break-word text-gray-700 dark:text-gray-400">{{ source[3] }}</p>
-                    <div class="flex justify-end">
-                        <button onclick="openEditSourceModal('{{ source[2] }}', '{{ source[0] }}', '{{ source[3] }}', [{% for subroute in subroutes if subroute[2] == source[2] %}[{{ subroute[0] }}, '{{ subroute[1] }}', '{{ subroute[2] }}', {{ subroute[3] }}]{% if not loop.last %},{% endif %}{% endfor %}])" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                            <i class="fa-solid fa-pencil me-2"></i>Edit
-                        </button>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-            
-            <!-- Add New Source Card -->
-            <div class="max-w-sm bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-                <div class="p-5 text-center">
-                    <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Add a new source</h5>
-                    <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Add a new API to access in a dashboard</p>
-                    <button onclick="document.getElementById('add_source_modal').classList.remove('hidden')" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                        <i class="fa-solid fa-plus me-2"></i>Add
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- New Dashboard Modal -->
     <div id="new_dash_modal" data-modal-placement="center" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50">
         <div class="relative p-4 w-full max-w-md max-h-full">
@@ -377,311 +278,105 @@
             </div>
         </div>
     </div>
-    <script src="/static/themes.js"></script>
-    <script>
-        // Edit modal functionality
-        let editCurrentStep = 0;
-        let editSubrouteCount = 0;
+    <!-- Sidebar -->
+    <aside id="default-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
+        <div class="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
+            <ul class="space-y-2 font-medium">
+                <li>
+                    <button onclick="location.href = '/home'" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group w-full">
+                        <i class="fa-solid fa-chart-line w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"></i>
+                        <span class="ms-3">Dashboards</span>
+                    </button>
+                </li>
+                <li>
+                    <button disabled class="flex items-center py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 w-full">
+                        <i class="fa-solid fa-database w-5 h-5 text-white transition duration-75 dark:text-white group-hover:text-white dark:group-hover:text-white"></i>
+                        <span class="ms-3">Sources</span>
+                    </button>
+                </li>
+                <li>
+                    <button onclick="document.getElementById('new_dash_modal').classList.remove('hidden')" class="flex items-center p-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 group w-full">
+                        <i class="fa-solid fa-plus w-5 h-5 text-white"></i>
+                        <span class="ms-3">New Dashboard</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </aside>
 
-        function openEditSourceModal(sourceName, createdBy, route, subroutes = []) {
-            // Set the composite primary key values
-            document.getElementById('edit-source-original-name').value = sourceName;
-            document.getElementById('edit-source-created-by').value = createdBy;
-            document.getElementById('edit-source-form').action = `/api/update/source/${sourceName}/${createdBy}`;
-            
-            // Update the modal title
-            document.getElementById('edit-source-modal-title').textContent = 'Updating source: ' + sourceName;
-            
-            // Fill in the form fields
-            document.getElementById('edit_source_name').value = sourceName;
-            document.getElementById('edit_source_route').value = route;
-            
-            // Reset to first step
-            editCurrentStep = 0;
-            showEditStep(editCurrentStep);
-            
-            // Clear and populate subroutes
-            const editSubroutesContainer = document.getElementById('edit-subroutes');
-            editSubroutesContainer.innerHTML = '';
-            editSubrouteCount = 0;
-            
-            // Add existing subroutes
-            if (subroutes && subroutes.length > 0) {
-                subroutes.forEach(subroute => {
-                    // subroute structure: (id, route, source_name, created_by)
-                    const subrouteRoute = subroute[1]; // Extract the route from the tuple
-                    addEditSubroute(subrouteRoute, subroute[0]); // Pass route and id
-                });
-            } else {
-                // Add at least one empty subroute field if no existing subroutes
-                addEditSubroute();
-            }
-            
-            // Show the modal
-            document.getElementById('edit_source_modal').classList.remove('hidden');
-        }
-
-        function showEditStep(step) {
-            const editSteps = document.querySelectorAll('.edit-step-page');
-            const editStepIndicators = document.querySelectorAll('#edit-steps li');
-            const editStepConnectors = document.querySelectorAll('.edit-step-connector');
-            const btnEditNext = document.getElementById('btnEditNext');
-            const btnEditBack = document.getElementById('btnEditBack');
-            const btnEditSubmit = document.getElementById('btnEditSubmit');
-            const btnEditDelete = document.getElementById('btnEditDelete');
-
-            editSteps.forEach((stepEl, index) => {
-                stepEl.classList.toggle('hidden', index !== step);
-            });
-
-            editStepIndicators.forEach((indicator, index) => {
-                const circle = indicator.querySelector('div');
-                if (index <= step) {
-                    circle.classList.remove('bg-gray-100', 'dark:bg-gray-700');
-                    circle.classList.add('bg-blue-100', 'dark:bg-blue-800');
-                    indicator.classList.add('text-blue-600', 'dark:text-blue-500');
-                } else {
-                    circle.classList.remove('bg-blue-100', 'dark:bg-blue-800');
-                    circle.classList.add('bg-gray-100', 'dark:bg-gray-700');
-                    indicator.classList.remove('text-blue-600', 'dark:text-blue-500');
-                }
-            });
-
-            editStepConnectors.forEach((connector, index) => {
-                if (index < step) {
-                    connector.classList.remove('border-gray-100', 'dark:border-gray-700');
-                    connector.classList.add('border-blue-100', 'border-blue-600', 'dark:border-blue-500');
-                } else {
-                    connector.classList.remove('border-blue-100', 'border-blue-600', 'dark:border-blue-500');
-                    connector.classList.add('border-gray-100', 'dark:border-gray-700');
-                }
-            });
-
-            btnEditBack.classList.toggle('hidden', step === 0);
-            btnEditNext.classList.toggle('hidden', step === editSteps.length - 1);
-            btnEditSubmit.classList.toggle('hidden', step !== editSteps.length - 1);
-            btnEditDelete.classList.remove('hidden'); // Always show delete button
-        }
-
-        function addEditSubroute(defaultValue = '', subrouteId = null) {
-            editSubrouteCount++;
-            const editSubroutesContainer = document.getElementById('edit-subroutes');
-            const newSubroute = document.createElement('div');
-            newSubroute.className = 'edit-subroute-item';
-            
-            // Include hidden input for subroute ID if it exists (for existing subroutes)
-            const hiddenIdInput = subrouteId ? 
-                `<input type="hidden" name="subroute_id${editSubrouteCount}" value="${subrouteId}">` : '';
-            
-            newSubroute.innerHTML = `
-                <label for="edit_subroute${editSubrouteCount}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Subroute ${editSubrouteCount}</label>
-                <div class="flex gap-2">
-                    ${hiddenIdInput}
-                    <input type="text" name="subroute${editSubrouteCount}" id="edit_subroute${editSubrouteCount}" value="${defaultValue}" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="/data/endpoint${editSubrouteCount}">
-                    <button type="button" class="text-red-600 hover:text-red-800 p-2.5 rounded-lg hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 remove-edit-subroute">
-                        <i class="fa-solid fa-minus"></i>
+    <!-- Main Content -->
+    <div class="p-4 sm:ml-64">
+        <!-- Navbar -->
+        <nav class="bg-white border-gray-200 dark:bg-gray-900 mb-4">
+            <div class="flex flex-wrap items-center justify-between pl-0 pr-4 py-4">
+                <div class="flex items-center rtl:space-x-reverse">
+                    <button data-drawer-target="default-sidebar" data-drawer-toggle="default-sidebar" aria-controls="default-sidebar" type="button" class="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
+                        <span class="sr-only">Open sidebar</span>
+                        <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
+                        </svg>
+                    </button>
+                    <h3 class="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">Sources</h3>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <!-- Theme Toggle -->
+                    <button  data-theme-toggle id="theme-toggler" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
+                        <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                        <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+                    </button>
+                    <!-- Logout Button -->
+                    <button onclick="location.href='/logout'" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
+                        <i class="fa-solid fa-user-minus text-xl"></i>
                     </button>
                 </div>
-            `;
-            editSubroutesContainer.appendChild(newSubroute);
-            updateEditRemoveButtons();
-        }
+            </div>
+        </nav>
 
-        function updateEditRemoveButtons() {
-            const removeButtons = document.querySelectorAll('.remove-edit-subroute');
-            const subrouteItems = document.querySelectorAll('.edit-subroute-item');
+        <!-- Toast Notification -->
+        {% if error %}
+        <div id="toast-danger" class="fixed top-5 right-5 flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800" role="alert">
+            <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-red-500 bg-red-100 rounded-lg dark:bg-red-800 dark:text-red-200">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div class="ms-3 text-sm font-normal">{{ error }}</div>
+            <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" data-dismiss-target="#toast-danger" aria-label="Close">
+                <span class="sr-only">Close</span>
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+            </button>
+        </div>
+        {% endif %}
+
+        <!-- Sources Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
+            {% for source in sources %}
+            <div class="max-w-sm bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
+                <div class="p-5">
+                    <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{{ source[2] }}</h5>
+                    <p class="mb-3 font-normal text-wrap wrap-break-word text-gray-700 dark:text-gray-400">{{ source[3] }}</p>
+                    <div class="flex justify-end">
+                        <button onclick="openEditSourceModal('{{ source[2] }}', '{{ source[0] }}', '{{ source[3] }}', [{% for subroute in subroutes if subroute[2] == source[2] %}[{{ subroute[0] }}, '{{ subroute[1] }}', '{{ subroute[2] }}', {{ subroute[3] }}]{% if not loop.last %},{% endif %}{% endfor %}])" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                            <i class="fa-solid fa-pencil me-2"></i>Edit
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
             
-            removeButtons.forEach(button => {
-                button.classList.toggle('hidden', subrouteItems.length <= 1);
-            });
-        }
-
-        function confirmSourceDelete() {
-            document.getElementById('edit_source_modal').classList.add('hidden');
-            document.getElementById('delete_source_confirmation_modal').classList.remove('hidden');
-        }
-
-        function deleteSource() {
-            const originalName = document.getElementById('edit-source-original-name').value;
-            const createdBy = document.getElementById('edit-source-created-by').value;
-            
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/api/delete/source/${originalName}/${createdBy}`;
-            
-            // Add the composite primary key as form data
-            const originalNameInput = document.createElement('input');
-            originalNameInput.type = 'hidden';
-            originalNameInput.name = 'original_name';
-            originalNameInput.value = originalName;
-            form.appendChild(originalNameInput);
-            
-            const createdByInput = document.createElement('input');
-            createdByInput.type = 'hidden';
-            createdByInput.name = 'created_by';
-            createdByInput.value = createdBy;
-            form.appendChild(createdByInput);
-            
-            document.body.appendChild(form);
-            form.submit();
-        }
-
-        // Event listeners for edit modal
-        document.addEventListener('DOMContentLoaded', function() {
-            // Edit modal navigation
-            const btnEditNext = document.getElementById('btnEditNext');
-            const btnEditBack = document.getElementById('btnEditBack');
-            
-            if (btnEditNext) {
-                btnEditNext.addEventListener('click', function() {
-                    const editSteps = document.querySelectorAll('.edit-step-page');
-                    if (editCurrentStep < editSteps.length - 1) {
-                        editCurrentStep++;
-                        showEditStep(editCurrentStep);
-                    }
-                });
-            }
-            
-            if (btnEditBack) {
-                btnEditBack.addEventListener('click', function() {
-                    if (editCurrentStep > 0) {
-                        editCurrentStep--;
-                        showEditStep(editCurrentStep);
-                    }
-                });
-            }
-            
-            // Add edit subroute functionality
-            const btnEditNewSub = document.getElementById('btnEditNewSub');
-            if (btnEditNewSub) {
-                btnEditNewSub.addEventListener('click', function() {
-                    addEditSubroute();
-                });
-            }
-            
-            // Remove edit subroute function
-            document.addEventListener('click', function(e) {
-                if (e.target.closest('.remove-edit-subroute')) {
-                    const subrouteItem = e.target.closest('.edit-subroute-item');
-                    subrouteItem.remove();
-                    updateEditRemoveButtons();
-                }
-            });
-        });
-        </script>
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-
-                // Toast auto-hide functionality
-                const toastElements = document.querySelectorAll('[id^="toast-"]');
-                
-                toastElements.forEach(function(toast) {
-                    setTimeout(function() {
-                        toast.style.opacity = '0';
-                        toast.style.transition = 'opacity 0.3s ease-out';
-                        
-                        setTimeout(function() {
-                            toast.remove();
-                        }, 300);
-                    }, 10000);
-                });
-
-                // Multi-step form functionality
-                let currentStep = 0;
-                const steps = document.querySelectorAll('.step-page');
-                const stepIndicators = document.querySelectorAll('#steps li');
-                const stepConnectors = document.querySelectorAll('.step-connector');
-                const btnNext = document.getElementById('btnNext');
-                const btnBack = document.getElementById('btnBack');
-                const btnSubmit = document.getElementById('btnSubmit');
-
-                function showStep(step) {
-                    steps.forEach((stepEl, index) => {
-                        stepEl.classList.toggle('hidden', index !== step);
-                    });
-
-                    stepIndicators.forEach((indicator, index) => {
-                        const circle = indicator.querySelector('div');
-                        if (index <= step) {
-                            circle.classList.remove('bg-gray-100', 'dark:bg-gray-700');
-                            circle.classList.add('bg-blue-100', 'dark:bg-blue-800');
-                            indicator.classList.add('text-blue-600', 'dark:text-blue-500');
-                        } else {
-                            circle.classList.remove('bg-blue-100', 'dark:bg-blue-800');
-                            circle.classList.add('bg-gray-100', 'dark:bg-gray-700');
-                            indicator.classList.remove('text-blue-600', 'dark:text-blue-500');
-                        }
-                    });
-
-                    // Update step connectors to only fill when previous step is completed
-                    stepConnectors.forEach((connector, index) => {
-                        if (index < step) {
-                            connector.classList.remove('border-gray-100', 'dark:border-gray-700');
-                            connector.classList.add('border-blue-100', 'border-blue-600', 'dark:border-blue-500');
-                        } else {
-                            connector.classList.remove('border-blue-100', 'border-blue-600', 'dark:border-blue-500');
-                            connector.classList.add('border-gray-100', 'dark:border-gray-700');
-                        }
-                    });
-
-                    btnBack.classList.toggle('hidden', step === 0);
-                    btnNext.classList.toggle('hidden', step === steps.length - 1);
-                    btnSubmit.classList.toggle('hidden', step !== steps.length - 1);
-                }
-
-                btnNext.addEventListener('click', function() {
-                    if (currentStep < steps.length - 1) {
-                        currentStep++;
-                        showStep(currentStep);
-                    }
-                });
-
-                btnBack.addEventListener('click', function() {
-                    if (currentStep > 0) {
-                        currentStep--;
-                        showStep(currentStep);
-                    }
-                });
-
-                // Add subroute functionality
-                let subrouteCount = 1;
-                
-                function updateRemoveButtons() {
-                    const removeButtons = document.querySelectorAll('.remove-subroute');
-                    const subrouteItems = document.querySelectorAll('.subroute-item');
-                    
-                    removeButtons.forEach(button => {
-                        button.classList.toggle('hidden', subrouteItems.length <= 0);
-                    });
-                }
-                
-                document.getElementById('btnNewSub').addEventListener('click', function() {
-                    subrouteCount++;
-                    const subroutesContainer = document.getElementById('subroutes');
-                    const newSubroute = document.createElement('div');
-                    newSubroute.className = 'subroute-item';
-                    newSubroute.innerHTML = `
-                        <label for="subroute${subrouteCount}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Subroute ${subrouteCount}</label>
-                        <div class="flex gap-2">
-                            <input type="text" name="subroute${subrouteCount}" id="subroute${subrouteCount}" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="/data/endpoint${subrouteCount}">
-                            <button type="button" class="text-red-600 hover:text-red-800 p-2.5 rounded-lg hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 remove-subroute">
-                                <i class="fa-solid fa-minus"></i>
-                            </button>
-                        </div>
-                    `;
-                    subroutesContainer.appendChild(newSubroute);
-                    updateRemoveButtons();
-                });
-                
-                // Remove subroute function
-                document.addEventListener('click', function(e) {
-                    if (e.target.closest('.remove-subroute')) {
-                        const subrouteItem = e.target.closest('.subroute-item');
-                        subrouteItem.remove();
-                        updateRemoveButtons();
-                    }
-                });
-            });
-        </script>
+            <!-- Add New Source Card -->
+            <div class="max-w-sm bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
+                <div class="p-5 text-center">
+                    <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Add a new source</h5>
+                    <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Add a new API to access in a dashboard</p>
+                    <button onclick="document.getElementById('add_source_modal').classList.remove('hidden')" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                        <i class="fa-solid fa-plus me-2"></i>Add
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/static/themes.js"></script>
+    <script src="/static/sources.js"></script>
 </body>
 </html>
