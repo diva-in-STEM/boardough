@@ -1709,16 +1709,60 @@ function renderCalculationsList() {
     }
     Object.entries(calcs).forEach(([id, calc]) => {
         const item = document.createElement('div');
-        item.className = 'calculation-list-item bg-white dark:bg-gray-800 rounded shadow p-4 mb-2 flex justify-between items-center';
-        item.innerHTML = `<span class="font-semibold">${calc.name || 'Untitled Calculation'}</span>`;
-        // Optionally add edit/delete buttons here
+        item.className = 'calculation-list-item bg-white dark:bg-gray-800 rounded shadow p-4 mb-2 flex justify-between items-center border border-gray-200 dark:border-gray-700';
+        
+        const leftContent = document.createElement('div');
+        leftContent.className = 'flex flex-col';
+        leftContent.innerHTML = `
+            <span class="font-semibold text-gray-900 dark:text-white">${calc.name || 'Untitled Calculation'}</span>
+            <span class="text-sm text-gray-600 dark:text-gray-400">
+                ${calc.flow ? calc.flow.length : 0} steps • Created ${new Date(parseInt(id.replace('calc_', ''))).toLocaleDateString()}
+            </span>
+        `;
+        
+        const rightContent = document.createElement('div');
+        rightContent.className = 'flex gap-2';
+        
+        // Edit button
+        const editBtn = document.createElement('button');
+        editBtn.className = 'px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition-colors';
+        editBtn.innerHTML = '<i class="fa fa-edit mr-1"></i>Edit';
+        editBtn.onclick = function() { showCalculationBuilder(id); };
+        
+        // Delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm transition-colors';
+        deleteBtn.innerHTML = '<i class="fa fa-trash mr-1"></i>Delete';
+        deleteBtn.onclick = function() { deleteCalculation(id); };
+        
+        rightContent.appendChild(editBtn);
+        rightContent.appendChild(deleteBtn);
+        
+        item.appendChild(leftContent);
+        item.appendChild(rightContent);
         list.appendChild(item);
     });
+}
+
+function deleteCalculation(calcId) {
+    if (confirm('Are you sure you want to delete this calculation?')) {
+        delete dashboardState.calculations[calcId];
+        renderCalculationsList();
+    }
 }
 
 function showCalculationBuilder(calcId = null) {
     const builderContainer = document.getElementById('calculations-list');
     builderContainer.innerHTML = '';
+    // Initialize current calculation for editing
+    window.currentCalcId = calcId;
+    if (calcId && dashboardState.calculations[calcId]) {
+        window.currentCalcFlow = JSON.parse(JSON.stringify(dashboardState.calculations[calcId].flow)) || [];
+        window.currentCalcName = dashboardState.calculations[calcId].name || '';
+    } else {
+        window.currentCalcFlow = [];
+        window.currentCalcName = '';
+    }
     // Render the drag-and-drop builder (the original node-based flow builder)
     renderCalculationsBuilder(calcId);
 }
@@ -1730,22 +1774,49 @@ function renderCalculationsBuilder(calcId = null) {
     list.innerHTML = '';
     const builder = document.createElement('div');
     builder.className = 'calculation-builder bg-white dark:bg-gray-800 rounded shadow p-6 flex flex-col';
+    
+    const isEditing = calcId !== null;
+    const headerText = isEditing ? 'Edit Calculation' : 'Create New Calculation';
+    
     builder.innerHTML = `
-        <h3 class="text-lg font-bold mb-4 text-gray-900 dark:text-white">Calculation Builder</h3>
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">${headerText}</h3>
+            <button class="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded text-sm" onclick="cancelCalculationBuilder()">
+                <i class="fa fa-times mr-1"></i>Cancel
+            </button>
+        </div>
+        
+        <!-- Calculation Name Input -->
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Calculation Name</label>
+            <input type="text" id="calc-name-input" 
+                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm 
+                          focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white" 
+                   placeholder="Enter calculation name..." 
+                   value="${window.currentCalcName || ''}">
+        </div>
+        
         <div class="flex flex-row gap-6 mb-6">
             <div class="w-1/2">
-                <h4 class="font-semibold mb-2">Data Sources</h4>
+                <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Data Sources</h4>
                 <div id="calc-datasource-list" class="space-y-2"></div>
             </div>
             <div class="w-1/2">
-                <h4 class="font-semibold mb-2">Available Operations</h4>
+                <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Available Operations</h4>
                 <div id="calc-operations-list" class="flex flex-wrap gap-2"></div>
             </div>
         </div>
         <div class="w-full">
-            <h4 class="font-semibold mb-2">Calculation Flow</h4>
+            <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Calculation Flow</h4>
             <div id="calc-flow-dropzone" class="min-h-[120px] w-full border-2 border-dashed border-blue-400 rounded p-4 bg-blue-50 dark:bg-blue-900/20 flex flex-row gap-4 overflow-x-auto"></div>
-            <button class="mt-4 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" onclick="saveCalculationFlow()">Save Calculation</button>
+            <div class="flex gap-2 mt-4">
+                <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors" onclick="saveCalculationFlow()">
+                    <i class="fa fa-save mr-1"></i>${isEditing ? 'Update Calculation' : 'Save Calculation'}
+                </button>
+                <button class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors" onclick="previewCalculationFlow()">
+                    <i class="fa fa-eye mr-1"></i>Preview
+                </button>
+            </div>
         </div>
         <div id="calc-flow-preview" class="mt-6"></div>
     `;
@@ -1753,6 +1824,22 @@ function renderCalculationsBuilder(calcId = null) {
     renderCalculationDataSources();
     renderCalculationOperations();
     renderCalculationFlow();
+    
+    // Focus on name input for new calculations
+    if (!isEditing) {
+        setTimeout(() => {
+            document.getElementById('calc-name-input').focus();
+        }, 100);
+    }
+}
+
+function cancelCalculationBuilder() {
+    // Reset global variables
+    window.currentCalcFlow = [];
+    window.currentCalcName = '';
+    window.currentCalcId = null;
+    // Go back to list view
+    renderCalculationsList();
 }
 
 // Add missing renderCalculationDataSources function
@@ -1763,7 +1850,7 @@ function renderCalculationDataSources() {
     subroutes.forEach((subroute, idx) => {
         // subroute: [id, path, source_name, source_created_by]
         const btn = document.createElement('button');
-        btn.className = 'draggable-ds bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded shadow hover:bg-blue-100 dark:hover:bg-blue-800 text-gray-800 dark:text-white w-full text-left';
+        btn.className = 'draggable-ds bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded shadow hover:bg-blue-100 dark:hover:bg-blue-800 text-gray-800 dark:text-white w-full text-left transition-colors';
         btn.draggable = true;
         btn.textContent = subroute[1]; // Show the subroute path
         btn.dataset.subrouteIdx = idx;
@@ -1790,7 +1877,7 @@ function renderCalculationOperations() {
     ];
     operations.forEach(op => {
         const btn = document.createElement('button');
-        btn.className = 'draggable-op bg-blue-100 dark:bg-blue-800 px-3 py-2 rounded shadow hover:bg-blue-200 dark:hover:bg-blue-900 text-blue-900 dark:text-blue-200';
+        btn.className = 'draggable-op bg-blue-100 dark:bg-blue-800 px-3 py-2 rounded shadow hover:bg-blue-200 dark:hover:bg-blue-900 text-blue-900 dark:text-blue-200 transition-colors';
         btn.draggable = true;
         btn.textContent = op.label;
         btn.title = op.desc;
@@ -1834,24 +1921,38 @@ function renderCalculationFlow() {
     flowZone.innerHTML = '';
     flowZone.addEventListener('dragover', function(e) { e.preventDefault(); });
     flowZone.addEventListener('drop', handleCalcDrop);
+    
     // Show current flow steps as nodes (simple version)
     window.currentCalcFlow = window.currentCalcFlow || [];
+    
+    if (window.currentCalcFlow.length === 0) {
+        flowZone.innerHTML = '<div class="text-gray-500 dark:text-gray-400 text-center w-full">Drag data sources and operations here to build your calculation</div>';
+        return;
+    }
+    
     window.currentCalcFlow.forEach((step, idx) => {
         const node = document.createElement('div');
-        node.className = 'calc-flow-node bg-white dark:bg-gray-700 border border-blue-300 dark:border-blue-700 rounded px-4 py-3 flex flex-col items-center justify-center min-w-[120px] relative';
-        node.innerHTML = `<span class="font-semibold">${step.label || step.type || step.sourceName}</span>`;
+        node.className = 'calc-flow-node bg-white dark:bg-gray-700 border border-blue-300 dark:border-blue-700 rounded px-4 py-3 flex flex-col items-center justify-center min-w-[120px] relative shadow-sm';
+        node.innerHTML = `<span class="font-semibold text-gray-900 dark:text-white">${step.label || step.type || step.sourceName}</span>`;
+        
         // Show data sources for operations
         if (step.type !== 'source' && step.inputs && step.inputs.length) {
-            node.innerHTML += `<div class="text-xs mt-2 text-gray-500">Inputs: ${step.inputs.map(i => i.sourceName || i.label || i.type).join(', ')}</div>`;
+            node.innerHTML += `<div class="text-xs mt-2 text-gray-500 dark:text-gray-400">Inputs: ${step.inputs.map(i => i.sourceName || i.label || i.type).join(', ')}</div>`;
         }
-        node.innerHTML += `<button class="absolute top-1 right-1 text-red-500" onclick="removeCalcFlowStep(${idx})"><i class="fa fa-times"></i></button>`;
-        node.onclick = function() { editCalcFlowNode(idx); };
+        
+        node.innerHTML += `<button class="absolute top-1 right-1 text-red-500 hover:text-red-700 w-6 h-6 flex items-center justify-center" onclick="removeCalcFlowStep(${idx})" title="Remove step"><i class="fa fa-times"></i></button>`;
+        node.onclick = function(e) { 
+            if (!e.target.closest('button')) {
+                editCalcFlowNode(idx); 
+            }
+        };
         flowZone.appendChild(node);
+        
         // Draw simple arrows (not SVG, just a line for now)
-        if (idx > 0) {
+        if (idx < window.currentCalcFlow.length - 1) {
             const arrow = document.createElement('div');
             arrow.className = 'calc-flow-arrow flex items-center justify-center';
-            arrow.innerHTML = '<span class="mx-2 text-blue-400">→</span>';
+            arrow.innerHTML = '<span class="mx-2 text-blue-400 text-xl">→</span>';
             flowZone.appendChild(arrow);
         }
     });
@@ -1863,7 +1964,32 @@ function removeCalcFlowStep(idx) {
     renderCalculationFlow();
 }
 
+function previewCalculationFlow() {
+    executeCalculationFlow(false); // Preview mode
+}
+
 async function saveCalculationFlow() {
+    const nameInput = document.getElementById('calc-name-input');
+    const calcName = nameInput.value.trim();
+    
+    if (!calcName) {
+        alert('Please enter a name for the calculation.');
+        nameInput.focus();
+        return;
+    }
+    
+    const success = await executeCalculationFlow(true, calcName); // Save mode
+    if (success) {
+        // Reset global variables
+        window.currentCalcFlow = [];
+        window.currentCalcName = '';
+        window.currentCalcId = null;
+        // Go back to list view
+        renderCalculationsList();
+    }
+}
+
+async function executeCalculationFlow(saveMode = false, calcName = '') {
     const preview = document.getElementById('calc-flow-preview');
     let resultData = null;
     let error = null;
@@ -1908,33 +2034,45 @@ async function saveCalculationFlow() {
         }
     } catch (e) {
         error = e.message;
-        console.error('Error in saveCalculationFlow:', e);
+        console.error('Error in executeCalculationFlow:', e);
     }
     
     // Display preview (moved outside try-catch to ensure it always runs)
-    preview.innerHTML = '<div class="p-4 bg-gray-100 dark:bg-gray-800 rounded">' +
-        '<strong>Calculation Steps:</strong><br>' +
+    const previewClass = error ? 'border-red-200 bg-red-50 dark:bg-red-900/20' : 'border-green-200 bg-green-50 dark:bg-green-900/20';
+    preview.innerHTML = `<div class="p-4 border rounded ${previewClass}">` +
+        '<strong class="text-gray-900 dark:text-white">Calculation Steps:</strong><br>' +
         window.currentCalcFlow.map((step, i) => `${i+1}. ${step.label || step.type || step.sourceName}`).join('<br>') +
-        (error ? `<div class="mt-4 text-red-600">Error: ${error}</div>` :
-            `<div class="mt-4"><strong>Result Preview:</strong><pre class="bg-white dark:bg-gray-900 p-2 rounded text-xs">${JSON.stringify(resultData, null, 2)}</pre></div>`) +
+        (error ? `<div class="mt-4 text-red-600 dark:text-red-400"><strong>Error:</strong> ${error}</div>` :
+            `<div class="mt-4"><strong class="text-gray-900 dark:text-white">Result Preview:</strong><pre class="bg-white dark:bg-gray-900 p-2 rounded text-xs mt-2 border overflow-auto max-h-48">${JSON.stringify(resultData, null, 2)}</pre></div>`) +
         '</div>';
     
-    // Only save if there's no error
-    if (!error) {
-        // Save flow to dashboardState.calculations
-        const calcId = 'calc_' + Date.now();
+    // Only save if there's no error and we're in save mode
+    if (!error && saveMode) {
+        // Initialize calculations object if it doesn't exist
+        if (!dashboardState.calculations) {
+            dashboardState.calculations = {};
+        }
+        
+        // Use existing ID for editing or create new one
+        const calcId = window.currentCalcId || 'calc_' + Date.now();
+        
         dashboardState.calculations[calcId] = {
-            name: 'Calculation ' + Object.keys(dashboardState.calculations).length,
+            name: calcName,
             flow: JSON.parse(JSON.stringify(window.currentCalcFlow)),
-            result: resultData
+            result: resultData,
+            lastModified: Date.now()
         };
         
-        // Reset flow
-        window.currentCalcFlow = [];
-        
-        // Close builder and show list
-        renderCalculationsList();
+        return true; // Success
     }
+    
+    return false; // Failed or preview mode
+}
+
+function editCalcFlowNode(idx) {
+    // Placeholder for future node editing functionality
+    console.log('Edit node:', idx);
+    // This could open a modal to edit node parameters
 }
 
 function hideCalculationsPage() {
