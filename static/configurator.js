@@ -1862,3 +1862,82 @@ function removeCalcFlowStep(idx) {
     window.currentCalcFlow.splice(idx, 1);
     renderCalculationFlow();
 }
+
+async function saveCalculationFlow() {
+    const preview = document.getElementById('calc-flow-preview');
+    let resultData = null;
+    let error = null;
+    
+    try {
+        if (!window.currentCalcFlow || window.currentCalcFlow.length === 0) {
+            throw new Error('No flow defined');
+        }
+        
+        let sourceNode = window.currentCalcFlow.find(n => n.type === 'source');
+        if (!sourceNode) {
+            throw new Error('No data source in flow');
+        }
+        
+        // Fetch data from source
+        const res = await fetch(sourceNode.sourceUrl);
+        if (!res.ok) {
+            throw new Error(`Failed to fetch data: ${res.status} ${res.statusText}`);
+        }
+        const data = await res.json();
+        
+        // Apply operation (very basic demo)
+        let opNode = window.currentCalcFlow.find(n => n.type !== 'source');
+        if (opNode) {
+            if (opNode.type === 'count') {
+                resultData = Array.isArray(data) ? data.length : 0;
+            } else if (opNode.type === 'sum') {
+                // Sum first numeric field
+                if (Array.isArray(data) && data.length > 0) {
+                    const keys = Object.keys(data[0]);
+                    const numKey = keys.find(k => typeof data[0][k] === 'number');
+                    resultData = data.reduce((acc, item) => acc + (item[numKey] || 0), 0);
+                } else {
+                    resultData = 0;
+                }
+            } else {
+                // Just pass through for now
+                resultData = data;
+            }
+        } else {
+            resultData = data;
+        }
+    } catch (e) {
+        error = e.message;
+        console.error('Error in saveCalculationFlow:', e);
+    }
+    
+    // Display preview (moved outside try-catch to ensure it always runs)
+    preview.innerHTML = '<div class="p-4 bg-gray-100 dark:bg-gray-800 rounded">' +
+        '<strong>Calculation Steps:</strong><br>' +
+        window.currentCalcFlow.map((step, i) => `${i+1}. ${step.label || step.type || step.sourceName}`).join('<br>') +
+        (error ? `<div class="mt-4 text-red-600">Error: ${error}</div>` :
+            `<div class="mt-4"><strong>Result Preview:</strong><pre class="bg-white dark:bg-gray-900 p-2 rounded text-xs">${JSON.stringify(resultData, null, 2)}</pre></div>`) +
+        '</div>';
+    
+    // Only save if there's no error
+    if (!error) {
+        // Save flow to dashboardState.calculations
+        const calcId = 'calc_' + Date.now();
+        dashboardState.calculations[calcId] = {
+            name: 'Calculation ' + Object.keys(dashboardState.calculations).length,
+            flow: JSON.parse(JSON.stringify(window.currentCalcFlow)),
+            result: resultData
+        };
+        
+        // Reset flow
+        window.currentCalcFlow = [];
+        
+        // Close builder and show list
+        renderCalculationsList();
+    }
+}
+
+function hideCalculationsPage() {
+    document.getElementById('calculations-page').classList.add('hidden');
+    document.getElementById('drop-zone').classList.remove('hidden');
+}
