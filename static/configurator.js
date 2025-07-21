@@ -149,7 +149,7 @@ function initializePageNavigation() {
     const addPageButton = document.createElement('li');
     addPageButton.className = 'w-47';
     addPageButton.innerHTML = `
-        <button class="flex items-center dark:hover:bg-gray-700 dark:text-gray-300 group hover:bg-gray-100 p-2 rounded-lg text-gray-700 w-full ml-4 border-2 border-dashed border-gray-300 mr-4"
+        <button class="hover:cursor-pointer flex items-center dark:hover:bg-gray-700 dark:text-gray-300 group hover:bg-gray-100 p-2 rounded-lg text-gray-700 w-full ml-4 border-2 border-dashed border-gray-300 mr-4"
                 onclick="addNewPage()" type="button">
             <i class="dark:text-gray-400 text-gray-500 dark:group-hover:text-gray-300 fa-solid group-hover:text-gray-700 h-3 w-3 mr-3 fa-plus"></i>
             Add Page
@@ -168,7 +168,7 @@ function updatePagesList() {
         const pageElement = document.createElement('li');
         pageElement.className = 'w-47';
         pageElement.innerHTML = `
-            <button class="flex items-center dark:hover:bg-gray-700 dark:text-gray-300 group hover:bg-gray-100 p-2 rounded-lg text-gray-700 w-full ml-4 ${page.isActive ? 'border-2 border-indigo-200' : ''} mr-4"
+            <button class="hover:cursor-pointer flex items-center dark:hover:bg-gray-700 dark:text-gray-300 group hover:bg-gray-100 p-2 rounded-lg text-gray-700 w-full ml-4 ${page.isActive ? 'border-2 border-indigo-200' : ''} mr-4"
                     onclick="switchToPage('${page.id}')" type="button">
                 <i class="dark:text-gray-400 text-gray-500 dark:group-hover:text-gray-300 fa-solid group-hover:text-gray-700 h-3 w-3 mr-3 fa-file"></i>
                 ${page.name}
@@ -220,6 +220,7 @@ function switchToPage(pageId) {
     // Load new page
     loadPageState(pageId);
     updatePagesList();
+    hideCalculationsPage();
 }
 
 function saveCurrentPageState() {
@@ -645,10 +646,10 @@ function addDashboardControls() {
         const controls = document.createElement('div');
         controls.className = 'flex items-center space-x-2';
         controls.innerHTML = `
-            <button onclick="saveDashboard(${dashboardInfo[0]})" class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm">
+            <button onclick="saveDashboard(${dashboardInfo[0]})" class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm hover:cursor-pointer">
                 <i class="fas fa-save mr-1"></i> Save
             </button>
-            <button onclick="exportDashboard()" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm">
+            <button onclick="exportDashboard()" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm hover:cursor-pointer">
                 <i class="fas fa-download mr-1"></i> Export
             </button>
         `;
