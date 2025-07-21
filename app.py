@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, g, session, url_for
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
+import json
 
 DATABASE = './data/database.db'
 SECRET = b'\xf3\x7f\xc4\xa0[\x00\xa6\\\xe4\xc48\xa6<\\J{'
@@ -79,15 +80,15 @@ def home(error=''):
 		return redirect('/')
 	
 	if error != '':
-		return render_template("index.html", error=error)
+		return render_template("dashboards.html", error=error)
 
 	try:
 		dashboards = query_db('select * from dashboards where created_by=?', (session['userID'],))
 		sources = query_db('select * from sources where created_by=?', (session['userID'],))
-		return render_template("index.html", dashboards=dashboards, sources=sources)
+		return render_template("dashboards.html", dashboards=dashboards, sources=sources)
 	except Exception as e:
 		print(f'Error getting data from database: {e}')
-		return render_template("index.html", dashboards=[], sources=[], error="Error getting data from database")
+		return render_template("dashboards.html", dashboards=[], sources=[], error="Error getting data from database")
 
 @app.route('/sources', methods=['GET'])
 def sources_page(error=''):
@@ -377,6 +378,21 @@ def delete_source(sourceName, sourceCreatedBy):
             return redirect('/sources?error=' + str(e))
     else:
         return redirect('/')
+
+@app.route('/api/dashboards/save/<dashboardID>', methods=['POST'])
+def save_dashboard(dashboardID):
+    if 'userID' not in session:
+        return redirect('/')
+
+    try:
+        dashboardState = request.get_json()
+    except Exception as e:
+        return home(error=f'Error getting dashboard state: {e}')
+    else:
+        json_data = json.dumps(dashboardState, ensure_ascii=False)
+        query_db('update dashboards set configuration = ? where id = ?', (str(json_data), dashboardID))
+
+    return redirect('/home')
 
 if __name__ == '__main__':
 	app.run(debug=True)

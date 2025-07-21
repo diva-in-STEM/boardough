@@ -82,9 +82,10 @@ const CARD_TYPES = {
 const MAX_COLUMNS = 4;
 
 // Dashboard State Management
+const dashboardInfo = JSON.parse(document.getElementById("dashboard-info").innerText);
 let dashboardState = {
-    id: null,
-    name: '',
+    id: dashboardInfo[0],
+    name: dashboardInfo[3],
     pages: [
         {
             id: 'home',
@@ -116,13 +117,14 @@ const grid = document.getElementById("card-grid");
 // Initialize dashboard
 document.addEventListener("DOMContentLoaded", function() {
     try {
+        loadDashboard();
+        loadPageState(dashboardState.currentPageId);
         initializeDashboardData();
         generateComponentLibrary();
         initializeDragAndDrop();
         initThemeToggle();
         initializePageNavigation();
         initializeDataRefresh();
-        loadDashboardFromUrl();
     } catch (error) {
         console.error("Error initializing dashboard:", error);
     }
@@ -496,35 +498,37 @@ async function testCalculation() {
 }
 
 // Database Saving Functions
-async function saveDashboard() {
+async function saveDashboard(dashboardID) {
     try {
-        // Prepare dashboard data for saving
-        saveCurrentPageState(); // Save current page before serializing
-        
-        const dashboardData = {
-            id: dashboardState.id,
-            name: dashboardState.name || `Dashboard_${Date.now()}`,
-            pages: dashboardState.pages,
-            settings: dashboardState.settings,
-            dataSources: dashboardState.dataSources,
-            calculations: dashboardState.calculations
-        };
-        
-        const response = await fetch('/api/dashboards/save', {
+        // Save current state before sending
+        saveCurrentPageState();
+
+        // Serialize dashboard state to JSON
+        const jsonDash = JSON.stringify(dashboardState, null, 2);
+        const blob = new Blob([jsonDash], { type: 'application/json' });
+
+        // Send POST request
+        const response = await fetch(`/api/dashboards/save/${dashboardID}`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify(dashboardData)
+            body: blob
         });
-        
-        if (response.ok) {
+
+        // Check if the response was redirected
+        if (response.redirected) {
+            // Use the final URL in the response
+            location.href = response.url;
+        } else if (response.ok) {
+            // If the request succeeded, parse JSON and redirect
             const result = await response.json();
             dashboardState.id = result.id;
             showNotification("Dashboard saved successfully!", "success");
-            updateBrowserUrl();
+            location.href = '/home';
         } else {
-            throw new Error('Failed to save dashboard');
+            // If the response is not a redirect and not successful, show an error
+            throw new Error(`Request failed with status: ${response.status}`);
         }
     } catch (error) {
         console.error("Error saving dashboard:", error);
@@ -532,25 +536,10 @@ async function saveDashboard() {
     }
 }
 
-async function loadDashboard(dashboardId) {
+async function loadDashboard() {
     try {
-        const response = await fetch(`/api/dashboards/${dashboardId}`);
-        
-        if (response.ok) {
-            const dashboardData = await response.json();
-            
-            // Load dashboard state
-            dashboardState = {
-                ...dashboardState,
-                ...dashboardData
-            };
-            
-            // Update UI
-            updatePagesList();
-            switchToPage(dashboardData.currentPageId || 'home');
-            showNotification("Dashboard loaded successfully!", "success");
-        } else {
-            throw new Error('Failed to load dashboard');
+        if (dashboardInfo[7]) {
+            dashboardState = JSON.parse(dashboardInfo[7])
         }
     } catch (error) {
         console.error("Error loading dashboard:", error);
@@ -558,14 +547,9 @@ async function loadDashboard(dashboardId) {
     }
 }
 
-function loadDashboardFromUrl() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const dashboardId = urlParams.get('id');
-    
-    if (dashboardId) {
-        loadDashboard(dashboardId);
-    }
-}
+// window.onload = function() {
+//     loadDashboard()
+// }
 
 function updateBrowserUrl() {
     if (dashboardState.id) {
@@ -661,7 +645,7 @@ function addDashboardControls() {
         const controls = document.createElement('div');
         controls.className = 'flex items-center space-x-2';
         controls.innerHTML = `
-            <button onclick="saveDashboard()" class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm">
+            <button onclick="saveDashboard(${dashboardInfo[0]})" class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm">
                 <i class="fas fa-save mr-1"></i> Save
             </button>
             <button onclick="exportDashboard()" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm">
@@ -1352,7 +1336,7 @@ function generateChartModalContent() {
             '<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Data Source</label>' +
             '<select id="chart-source" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">' +
                 '<option value="">Select a source...</option>' +
-                dashboardSource.map(s => `<option value="${s[0]}">${s[2]}</option>`).join('') +
+                `<option value="${dashboardSource[3]}">${dashboardSource[2]}</option>` +
             '</select>' +
             '<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 mt-2">Endpoint</label>' +
             '<select id="chart-subroute" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white subroute-selector">' +

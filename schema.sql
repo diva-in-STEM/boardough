@@ -26,6 +26,7 @@ CREATE TABLE dashboards (
   description TEXT NOT NULL,
   source_name TEXT NOT NULL,
   source_created_by INTEGER NOT NULL,
+  configuration BLOB,
   FOREIGN KEY (created_by) REFERENCES users (id),
   FOREIGN KEY (source_name, source_created_by) REFERENCES sources (name, created_by)
 );
