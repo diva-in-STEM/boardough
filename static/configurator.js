@@ -1690,16 +1690,44 @@ if (!window.Chart) {
 function showCalculationsPage() {
     document.getElementById('calculations-page').classList.remove('hidden');
     document.getElementById('drop-zone').classList.add('hidden');
-    renderCalculationsBuilder();
+    document.getElementById('calculations-list').innerHTML = '';
+    // Render the list of calculations only (not the builder)
+    renderCalculationsList();
+    const createBtn = document.querySelector('#calculations-page button[onclick="showCalculationModal()"]');
+    if (createBtn) {
+        createBtn.onclick = function() { showCalculationBuilder(); };
+    }
 }
-function hideCalculationsPage() {
-    document.getElementById('calculations-page').classList.add('hidden');
-    document.getElementById('drop-zone').classList.remove('hidden');
-}
-function renderCalculationsBuilder() {
+
+function renderCalculationsList() {
     const list = document.getElementById('calculations-list');
     list.innerHTML = '';
+    const calcs = dashboardState.calculations || {};
+    if (Object.keys(calcs).length === 0) {
+        list.innerHTML = '<div class="text-gray-500 dark:text-gray-400">No calculations yet. Click "Create New Calculation" to add one.</div>';
+        return;
+    }
+    Object.entries(calcs).forEach(([id, calc]) => {
+        const item = document.createElement('div');
+        item.className = 'calculation-list-item bg-white dark:bg-gray-800 rounded shadow p-4 mb-2 flex justify-between items-center';
+        item.innerHTML = `<span class="font-semibold">${calc.name || 'Untitled Calculation'}</span>`;
+        // Optionally add edit/delete buttons here
+        list.appendChild(item);
+    });
+}
+
+function showCalculationBuilder(calcId = null) {
+    const builderContainer = document.getElementById('calculations-list');
+    builderContainer.innerHTML = '';
+    // Render the drag-and-drop builder (the original node-based flow builder)
+    renderCalculationsBuilder(calcId);
+}
+
+// Add missing renderCalculationsBuilder function
+function renderCalculationsBuilder(calcId = null) {
     // Calculation builder UI with dropzone full width at bottom
+    const list = document.getElementById('calculations-list');
+    list.innerHTML = '';
     const builder = document.createElement('div');
     builder.className = 'calculation-builder bg-white dark:bg-gray-800 rounded shadow p-6 flex flex-col';
     builder.innerHTML = `
@@ -1727,6 +1755,7 @@ function renderCalculationsBuilder() {
     renderCalculationFlow();
 }
 
+// Add missing renderCalculationDataSources function
 function renderCalculationDataSources() {
     const dsList = document.getElementById('calc-datasource-list');
     dsList.innerHTML = '';
@@ -1747,6 +1776,7 @@ function renderCalculationDataSources() {
     });
 }
 
+// Add missing renderCalculationOperations function
 function renderCalculationOperations() {
     const opsList = document.getElementById('calc-operations-list');
     opsList.innerHTML = '';
@@ -1768,6 +1798,35 @@ function renderCalculationOperations() {
         btn.addEventListener('dragstart', handleCalcDragStart);
         opsList.appendChild(btn);
     });
+}
+
+// Add missing drag and drop handlers for calculation builder dropzone
+function handleCalcDragStart(e) {
+    e.dataTransfer.setData('text/plain', JSON.stringify({
+        dsIdx: e.target.dataset.dsIdx,
+        opType: e.target.dataset.opType
+    }));
+}
+
+function handleCalcDrop(e) {
+    e.preventDefault();
+    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+    window.currentCalcFlow = window.currentCalcFlow || [];
+    // Dragging a subroute (data source)
+    if (data.subrouteIdx !== undefined) {
+        const subroute = subroutes[data.subrouteIdx];
+        window.currentCalcFlow.push({ type: 'source', sourceName: subroute[1], sourceUrl: dashboardSource[3] + subroute[1] });
+    }
+    // Dragging an operation
+    else if (data.opType) {
+        // By default, attach previous node(s) as inputs
+        let inputs = [];
+        if (window.currentCalcFlow.length > 0) {
+            inputs.push(window.currentCalcFlow[window.currentCalcFlow.length - 1]);
+        }
+        window.currentCalcFlow.push({ type: data.opType, label: data.opType.charAt(0).toUpperCase() + data.opType.slice(1), inputs });
+    }
+    renderCalculationFlow();
 }
 
 function renderCalculationFlow() {
@@ -1798,172 +1857,8 @@ function renderCalculationFlow() {
     });
 }
 
-function handleCalcDragStart(e) {
-    e.dataTransfer.setData('text/plain', JSON.stringify({
-        dsIdx: e.target.dataset.dsIdx,
-        opType: e.target.dataset.opType
-    }));
-}
-
-function handleCalcDrop(e) {
-    e.preventDefault();
-    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+function removeCalcFlowStep(idx) {
     window.currentCalcFlow = window.currentCalcFlow || [];
-    // Dragging a subroute (data source)
-    if (data.subrouteIdx !== undefined) {
-        const subroute = subroutes[data.subrouteIdx];
-        window.currentCalcFlow.push({ type: 'source', sourceName: subroute[1], sourceUrl: dashboardSource[3] + subroute[1] });
-    }
-    // Dragging an operation
-    else if (data.opType) {
-        // By default, attach previous node(s) as inputs
-        let inputs = [];
-        if (window.currentCalcFlow.length > 0) {
-            inputs.push(window.currentCalcFlow[window.currentCalcFlow.length - 1]);
-        }
-        window.currentCalcFlow.push({ type: data.opType, label: data.opType.charAt(0).toUpperCase() + data.opType.slice(1), inputs });
-    }
+    window.currentCalcFlow.splice(idx, 1);
     renderCalculationFlow();
-}
-
-async function saveCalculationFlow() {
-    const preview = document.getElementById('calc-flow-preview');
-    // For demo, show steps and preview result data
-    let resultData = null;
-    let error = null;
-    try {
-        // Only support single source + single operation for now
-        if (window.currentCalcFlow.length === 0) throw new Error('No flow defined');
-        let sourceNode = window.currentCalcFlow.find(n => n.type === 'source');
-        if (!sourceNode) throw new Error('No data source in flow');
-        // Fetch data from source
-        const res = await fetch(sourceNode.sourceUrl);
-        const data = await res.json();
-        // Apply operation (very basic demo)
-        let opNode = window.currentCalcFlow.find(n => n.type !== 'source');
-        if (opNode) {
-            if (opNode.type === 'count') {
-                resultData = Array.isArray(data) ? data.length : 0;
-            } else if (opNode.type === 'sum') {
-                // Sum first numeric field
-                if (Array.isArray(data) && data.length > 0) {
-                    const keys = Object.keys(data[0]);
-                    const numKey = keys.find(k => typeof data[0][k] === 'number');
-                    resultData = data.reduce((acc, item) => acc + (item[numKey] || 0), 0);
-                } else {
-                    resultData = 0;
-                }
-            } else if (opNode.type === 'filter') {
-                // Just show first 5 items
-                resultData = Array.isArray(data) ? data.slice(0, 5) : [];
-            } else {
-                resultData = data;
-            }
-        } else {
-            resultData = data;
-        }
-    } catch (e) {
-        error = e.message;
-    }
-    preview.innerHTML = '<div class="p-4 bg-gray-100 dark:bg-gray-800 rounded">' +
-        '<strong>Calculation Steps:</strong><br>' +
-        window.currentCalcFlow.map((step, i) => `${i+1}. ${step.label || step.type || step.sourceName}`).join('<br>') +
-        (error ? `<div class="mt-4 text-red-600">Error: ${error}</div>` :
-            `<div class="mt-4"><strong>Result Preview:</strong><pre class="bg-white dark:bg-gray-900 p-2 rounded text-xs">${JSON.stringify(resultData, null, 2)}</pre></div>`) +
-        '</div>';
-    // TODO: Convert flow to actual calculation logic and save to dashboardState.calculations
-}
-
-function editCalcFlowNode(idx) {
-    // For future: show modal to edit node parameters (e.g. filter field/value)
-    alert('Node editing UI coming soon!');
-}
-
-function showCalculationModal(calcId = null) {
-    const modal = document.getElementById('calculation-modal');
-    const content = document.getElementById('calculation-modal-content');
-    let calc = calcId ? dashboardState.calculations[calcId] : {};
-    content.innerHTML = `
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name</label>
-                <input type="text" id="calc-name" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" value="${calc.name || ''}">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
-                <input type="text" id="calc-description" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" value="${calc.description || ''}">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">First Subroute (e.g. /users)</label>
-                <select id="calc-subroute1" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
-                    <option value="">Select...</option>
-                    ${dashboardState.subroutes.map(s => `<option value="${s[1]}">${s[1]}</option>`).join('')}
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Second Subroute (e.g. /posts)</label>
-                <select id="calc-subroute2" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
-                    <option value="">Select...</option>
-                    ${dashboardState.subroutes.map(s => `<option value="${s[1]}">${s[1]}</option>`).join('')}
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Calculation Logic (JS expression)</label>
-                <textarea id="calc-logic" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" rows="3" placeholder="e.g. users.map(u => ({ name: u.name, count: posts.filter(p => p.userId === u.id).length }))">${calc.logic || ''}</textarea>
-                <div class="text-xs text-gray-500 mt-1">You get two arrays: <b>users</b> and <b>posts</b>. Return an array of objects for charting.</div>
-            </div>
-        </div>
-    `;
-    modal.classList.remove('hidden');
-    modal.dataset.editingId = calcId || '';
-}
-function closeCalculationModal() {
-    document.getElementById('calculation-modal').classList.add('hidden');
-}
-
-function saveCalculation() {
-    const id = document.getElementById('calculation-modal').dataset.editingId || `calc_${Date.now()}`;
-    const name = document.getElementById('calc-name').value;
-    const description = document.getElementById('calc-description').value;
-    const subroute1 = document.getElementById('calc-subroute1').value;
-    const subroute2 = document.getElementById('calc-subroute2').value;
-    const logic = document.getElementById('calc-logic').value;
-    dashboardState.calculations = dashboardState.calculations || {};
-    dashboardState.calculations[id] = { id, name, description, subroute1, subroute2, logic };
-
-    // Run the calculation logic and log the output
-    (async () => {
-        try {
-            // Find the source URL (assume first dataSource for now)
-            const sourceUrl = dashboardSource[3] || (dashboardState.dataSources && dashboardState.dataSources[0] && dashboardState.dataSources[0][3]) || '';
-            if (sourceUrl && subroute1 && subroute2 && logic) {
-                const usersRes = await fetch(sourceUrl + subroute1);
-                const postsRes = await fetch(sourceUrl + subroute2);
-                const users = await usersRes.json();
-                const posts = await postsRes.json();
-                let calcData = [];
-                try {
-                    calcData = Function('users', 'posts', 'return ' + logic)(users, posts);
-                } catch (e) {
-                    calcData = [];
-                }
-                console.log('Calculation output:', calcData);
-            }
-        } catch (err) {
-            console.error('Error running calculation logic:', err);
-        }
-    })();
-
-    closeCalculationModal();
-    renderCalculationsList();
-}
-
-function editCalculation(calcId) {
-    showCalculationModal(calcId);
-}
-function deleteCalculation(calcId) {
-    if (confirm('Delete this calculation?')) {
-        delete dashboardState.calculations[calcId];
-        renderCalculationsList();
-    }
 }
