@@ -1,30 +1,29 @@
-// Card type configurations - easy to modify and extend
 const CARD_TYPES = {
     text: {
-        title: 'Text Widget',
-        description: 'Add a text to your dashboard',
-        icon: 'fa-heading',
-        span: 'col-span-full',
+        title: "Text Widget",
+        description: "Add a text to your dashboard",
+        icon: "fa-heading",
+        span: "col-span-full",
         showHeader: false,
-        hoverColor: 'blue',
+        hoverColor: "blue",
         defaultSize: { cols: 4, rows: 1 },
         content: {
-            type: 'editable',
-            placeholder: 'Click to edit text...',
-            classes: 'text-3xl font-bold text-gray-900 dark:text-white text-center py-4 text-wrap flex align-center justify-center',
-            defaultText: 'Some Text'
+            type: "editable",
+            placeholder: "Click to edit text...",
+            classes: "text-3xl font-bold text-gray-900 dark:text-white text-center py-4 text-wrap flex align-center justify-center",
+            defaultText: "Some Text"
         }
     },
     chart: {
-        title: 'Chart Widget',
-        description: 'Add interactive charts to your dashboard',
-        icon: 'fa-chart-line',
-        span: 'col-span-1',
+        title: "Chart Widget",
+        description: "Add interactive charts to your dashboard",
+        icon: "fa-chart-line",
+        span: "col-span-1",
         showHeader: true,
-        hoverColor: 'blue',
+        hoverColor: "blue",
         defaultSize: { cols: 1, rows: 1 },
         content: {
-            type: 'placeholder',
+            type: "placeholder",
             html: `
                 <div class="py-8 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center">
                     <i class="fas fa-chart-line text-4xl text-gray-400"></i>
@@ -34,61 +33,649 @@ const CARD_TYPES = {
         }
     },
     stats: {
-        title: 'Statistics',
-        description: 'Display key metrics and statistics',
-        icon: 'fa-chart-bar',
-        span: 'col-span-1',
+        title: "Statistics",
+        description: "Display key metrics and statistics",
+        icon: "fa-chart-bar",
+        span: "col-span-1",
         showHeader: true,
-        hoverColor: 'green',
+        hoverColor: "green",
         defaultSize: { cols: 1, rows: 1 },
         content: {
-            type: 'stats',
+            type: "stats",
             stats: [
-                { value: '1,234', label: 'Total Users', color: 'blue' },
-                { value: '89%', label: 'Success Rate', color: 'green' }
+                { value: "1,234", label: "Total Users", color: "blue" },
+                { value: "89%", label: "Success Rate", color: "green" }
             ]
         }
     },
     table: {
-        title: 'Data Table',
-        description: 'Show data in a structured table format',
-        icon: 'fa-table',
-        span: 'col-span-1',
+        title: "Data Table",
+        description: "Show data in a structured table format",
+        icon: "fa-table",
+        span: "col-span-1",
         showHeader: true,
-        hoverColor: 'purple',
+        hoverColor: "purple",
         defaultSize: { cols: 2, rows: 1 },
         content: {
-            type: 'table',
-            headers: ['Name', 'Value'],
-            rows: [
-                ['Item 1', '100'],
-                ['Item 2', '200']
-            ]
+            type: "table",
+            headers: ["Name", "Value"],
+            rows: [["Item 1", "100"], ["Item 2", "200"]]
         }
     },
     notes: {
-        title: 'Notes',
-        description: 'Add text notes and reminders',
-        icon: 'fa-sticky-note',
-        span: 'col-span-1',
+        title: "Notes",
+        description: "Add text notes and reminders",
+        icon: "fa-sticky-note",
+        span: "col-span-1",
         showHeader: true,
-        hoverColor: 'yellow',
+        hoverColor: "yellow",
         defaultSize: { cols: 1, rows: 1 },
         content: {
-            type: 'editable',
-            placeholder: 'Click to add your notes...',
-            classes: 'bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded p-3 text-sm text-gray-700 dark:text-gray-300 min-h-[100px] resize-none',
-            defaultText: 'Sample note content...'
+            type: "editable",
+            placeholder: "Click to add your notes...",
+            classes: "bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded p-3 text-sm text-gray-700 dark:text-gray-300 min-h-[100px] resize-none",
+            defaultText: "Sample note content..."
         }
     }
 };
 
-// Grid settings
 const MAX_COLUMNS = 4;
-let resizeState = { isResizing: false, currentCard: null, startX: 0, startCols: 0 };
 
-// Reference to the grid container
-const grid = document.getElementById('card-grid');
+// Dashboard State Management
+let dashboardState = {
+    id: null,
+    name: '',
+    pages: [
+        {
+            id: 'home',
+            name: 'Home',
+            cards: [],
+            isActive: true
+        }
+    ],
+    currentPageId: 'home',
+    dataSources: [],
+    subroutes: [],
+    calculations: {},
+    settings: {
+        theme: 'light',
+        autoRefresh: false,
+        refreshInterval: 30000
+    }
+};
+
+let resizeState = {
+    isResizing: false,
+    currentCard: null,
+    startX: 0,
+    startCols: 0
+};
+
+const grid = document.getElementById("card-grid");
+
+// Initialize dashboard
+document.addEventListener("DOMContentLoaded", function() {
+    try {
+        initializeDashboardData();
+        generateComponentLibrary();
+        initializeDragAndDrop();
+        initThemeToggle();
+        initializePageNavigation();
+        initializeDataRefresh();
+        loadDashboardFromUrl();
+    } catch (error) {
+        console.error("Error initializing dashboard:", error);
+    }
+});
+
+function initializeDashboardData() {
+    const sourcesElement = document.getElementById("dashboard-sources");
+    const subroutesElement = document.getElementById("subroutes-data");
+    
+    if (sourcesElement) {
+        dashboardState.dataSources = JSON.parse(sourcesElement.textContent) || [];
+    }
+    if (subroutesElement) {
+        dashboardState.subroutes = JSON.parse(subroutesElement.textContent) || [];
+    }
+}
+
+// Page Management Functions
+function initializePageNavigation() {
+    updatePagesList();
+    // Add "Add Page" button functionality
+    const addPageButton = document.createElement('li');
+    addPageButton.className = 'w-47';
+    addPageButton.innerHTML = `
+        <button class="flex items-center dark:hover:bg-gray-700 dark:text-gray-300 group hover:bg-gray-100 p-2 rounded-lg text-gray-700 w-full ml-4 border-2 border-dashed border-gray-300 mr-4"
+                onclick="addNewPage()" type="button">
+            <i class="dark:text-gray-400 text-gray-500 dark:group-hover:text-gray-300 fa-solid group-hover:text-gray-700 h-3 w-3 mr-3 fa-plus"></i>
+            Add Page
+        </button>
+    `;
+    document.getElementById('pages-dropdown').appendChild(addPageButton);
+}
+
+function updatePagesList() {
+    const pagesDropdown = document.getElementById('pages-dropdown');
+    // Clear existing pages except the last add button
+    const existingPages = pagesDropdown.querySelectorAll('li:not(:last-child)');
+    existingPages.forEach(page => page.remove());
+    
+    dashboardState.pages.forEach(page => {
+        const pageElement = document.createElement('li');
+        pageElement.className = 'w-47';
+        pageElement.innerHTML = `
+            <button class="flex items-center dark:hover:bg-gray-700 dark:text-gray-300 group hover:bg-gray-100 p-2 rounded-lg text-gray-700 w-full ml-4 ${page.isActive ? 'border-2 border-indigo-200' : ''} mr-4"
+                    onclick="switchToPage('${page.id}')" type="button">
+                <i class="dark:text-gray-400 text-gray-500 dark:group-hover:text-gray-300 fa-solid group-hover:text-gray-700 h-3 w-3 mr-3 fa-file"></i>
+                ${page.name}
+                ${page.id !== 'home' ? `<i class="fa-solid fa-times ml-auto text-xs hover:text-red-600" onclick="deletePage('${page.id}', event)"></i>` : ''}
+            </button>
+        `;
+        pagesDropdown.insertBefore(pageElement, pagesDropdown.lastElementChild);
+    });
+}
+
+function addNewPage() {
+    const pageName = prompt("Enter page name:");
+    if (!pageName) return;
+    
+    const pageId = `page_${Date.now()}`;
+    const newPage = {
+        id: pageId,
+        name: pageName,
+        cards: [],
+        isActive: false
+    };
+    
+    dashboardState.pages.push(newPage);
+    updatePagesList();
+    switchToPage(pageId);
+}
+
+function deletePage(pageId, event) {
+    event.stopPropagation();
+    if (confirm("Are you sure you want to delete this page?")) {
+        dashboardState.pages = dashboardState.pages.filter(p => p.id !== pageId);
+        if (dashboardState.currentPageId === pageId) {
+            switchToPage('home');
+        }
+        updatePagesList();
+    }
+}
+
+function switchToPage(pageId) {
+    // Save current page state
+    saveCurrentPageState();
+    
+    // Switch to new page
+    dashboardState.pages.forEach(page => {
+        page.isActive = page.id === pageId;
+    });
+    dashboardState.currentPageId = pageId;
+    
+    // Load new page
+    loadPageState(pageId);
+    updatePagesList();
+}
+
+function saveCurrentPageState() {
+    const currentPage = dashboardState.pages.find(p => p.id === dashboardState.currentPageId);
+    if (currentPage) {
+        currentPage.cards = serializeCurrentCards();
+    }
+}
+
+function loadPageState(pageId) {
+    const page = dashboardState.pages.find(p => p.id === pageId);
+    if (page) {
+        clearGrid();
+        page.cards.forEach(cardData => {
+            deserializeCard(cardData);
+        });
+        
+        // Show/hide drag instructions based on card count
+        toggleDragInstructions(page.cards.length === 0);
+    }
+}
+
+function serializeCurrentCards() {
+    const cards = [];
+    document.querySelectorAll('.resizable-card').forEach(cardElement => {
+        const cardData = {
+            id: cardElement.dataset.cardId,
+            type: cardElement.dataset.cardType,
+            cols: parseInt(cardElement.dataset.cols),
+            rows: parseInt(cardElement.dataset.rows),
+            config: extractCardConfig(cardElement)
+        };
+        cards.push(cardData);
+    });
+    return cards;
+}
+
+function deserializeCard(cardData) {
+    const cardElement = createCard(cardData.type);
+    cardElement.dataset.cardId = cardData.id;
+    cardElement.dataset.cols = cardData.cols;
+    cardElement.dataset.rows = cardData.rows;
+    updateCardGridSpan(cardElement, cardData.cols, cardData.rows);
+    
+    // Apply saved configuration
+    if (cardData.config) {
+        applyCardConfig(cardElement, cardData.config);
+    }
+}
+
+function extractCardConfig(cardElement) {
+    const cardType = cardElement.dataset.cardType;
+    const config = {};
+    
+    if (cardType === 'text' || cardType === 'notes') {
+        const editableElement = cardElement.querySelector('[contenteditable]');
+        if (editableElement) {
+            config.text = editableElement.textContent;
+        }
+    }
+    // Add more config extraction for other card types
+    
+    return config;
+}
+
+function applyCardConfig(cardElement, config) {
+    const cardType = cardElement.dataset.cardType;
+    
+    if (cardType === 'text' || cardType === 'notes') {
+        const editableElement = cardElement.querySelector('[contenteditable]');
+        if (editableElement && config.text) {
+            editableElement.textContent = config.text;
+        }
+    }
+    // Add more config application for other card types
+}
+
+// Data Refresh and Auto-update
+function initializeDataRefresh() {
+    if (dashboardState.settings.autoRefresh) {
+        setInterval(refreshAllData, dashboardState.settings.refreshInterval);
+    }
+}
+
+async function refreshAllData() {
+    const cards = document.querySelectorAll('.resizable-card[data-card-type="stats"], .resizable-card[data-card-type="chart"]');
+    
+    for (const card of cards) {
+        try {
+            await refreshCardData(card);
+        } catch (error) {
+            console.error("Error refreshing card data:", error);
+        }
+    }
+}
+
+async function refreshCardData(cardElement) {
+    const cardType = cardElement.dataset.cardType;
+    
+    if (cardType === 'stats') {
+        // Re-fetch stats data
+        const config = extractCardConfig(cardElement);
+        if (config.dataSource) {
+            await applyStatsCustomization(cardElement, config);
+        }
+    } else if (cardType === 'chart') {
+        // Re-fetch chart data
+        const config = extractCardConfig(cardElement);
+        if (config.dataSource) {
+            await applyChartCustomization(cardElement, config);
+        }
+    }
+}
+
+// Custom Calculations Engine
+function createCalculatedField(formula, dataSources) {
+    return {
+        formula: formula,
+        dataSources: dataSources,
+        calculate: async function() {
+            try {
+                // Fetch all required data sources
+                const dataMap = {};
+                for (const source of this.dataSources) {
+                    const response = await fetch(source.url);
+                    const data = await response.json();
+                    dataMap[source.name] = data;
+                }
+                
+                // Execute formula with data context
+                const result = evaluateFormula(this.formula, dataMap);
+                return result;
+            } catch (error) {
+                console.error("Calculation error:", error);
+                return "Error";
+            }
+        }
+    };
+}
+
+function evaluateFormula(formula, dataMap) {
+    // Simple formula evaluator - can be extended with more complex operations
+    // Supports basic math operations and data references like SUM(dataSource.field)
+    
+    let processedFormula = formula;
+    
+    // Replace data references
+    Object.keys(dataMap).forEach(sourceName => {
+        const sourceData = dataMap[sourceName];
+        
+        // Handle SUM function
+        const sumRegex = new RegExp(`SUM\\(${sourceName}\\.([\\w]+)\\)`, 'g');
+        processedFormula = processedFormula.replace(sumRegex, (match, field) => {
+            if (Array.isArray(sourceData)) {
+                const sum = sourceData.reduce((acc, item) => {
+                    const value = parseFloat(item[field]) || 0;
+                    return acc + value;
+                }, 0);
+                return sum.toString();
+            }
+            return "0";
+        });
+        
+        // Handle AVG function
+        const avgRegex = new RegExp(`AVG\\(${sourceName}\\.([\\w]+)\\)`, 'g');
+        processedFormula = processedFormula.replace(avgRegex, (match, field) => {
+            if (Array.isArray(sourceData) && sourceData.length > 0) {
+                const sum = sourceData.reduce((acc, item) => {
+                    const value = parseFloat(item[field]) || 0;
+                    return acc + value;
+                }, 0);
+                return (sum / sourceData.length).toString();
+            }
+            return "0";
+        });
+        
+        // Handle COUNT function
+        const countRegex = new RegExp(`COUNT\\(${sourceName}\\)`, 'g');
+        processedFormula = processedFormula.replace(countRegex, () => {
+            return Array.isArray(sourceData) ? sourceData.length.toString() : "0";
+        });
+        
+        // Handle direct field access
+        const fieldRegex = new RegExp(`${sourceName}\\.([\\w]+)`, 'g');
+        processedFormula = processedFormula.replace(fieldRegex, (match, field) => {
+            if (Array.isArray(sourceData) && sourceData.length > 0) {
+                return sourceData[0][field] || "0";
+            } else if (sourceData && typeof sourceData === 'object') {
+                return sourceData[field] || "0";
+            }
+            return "0";
+        });
+    });
+    
+    // Evaluate the mathematical expression safely
+    try {
+        // Simple eval alternative for basic math operations
+        const result = Function(`"use strict"; return (${processedFormula})`)();
+        return isNaN(result) ? "Invalid" : result;
+    } catch (error) {
+        return "Error";
+    }
+}
+
+async function recalculateField(cardElement) {
+    const formula = cardElement.dataset.formula;
+    const dataSource = cardElement.dataset.dataSource;
+    
+    if (!formula || !dataSource) return;
+    
+    const calculation = createCalculatedField(formula, [{ name: 'data', url: dataSource }]);
+    const result = await calculation.calculate();
+    
+    const resultElement = cardElement.querySelector('.calculation-result');
+    if (resultElement) {
+        resultElement.textContent = result;
+    }
+}
+
+// Enhanced Modal Content for Calculated Fields
+function generateCalculatedModalContent() {
+    const sourceOptions = dashboardState.dataSources.map(source => 
+        `<option value="${source[3]}">${source[2]}</option>`
+    ).join("");
+    
+    return `
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Data Source</label>
+                <select id="calc-source" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
+                    <option value="">Select a source...</option>
+                    ${sourceOptions}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Formula</label>
+                <textarea id="calc-formula" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" rows="3" placeholder="e.g., SUM(data.amount) / COUNT(data)"></textarea>
+                <div class="text-xs text-gray-500 mt-1">
+                    Available functions: SUM(), AVG(), COUNT(), MIN(), MAX()<br>
+                    Data access: dataSource.fieldName
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Label</label>
+                <input type="text" id="calc-label" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" placeholder="e.g., Average Revenue">
+            </div>
+            <div>
+                <button type="button" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-sm" onclick="testCalculation()">
+                    Test Formula
+                </button>
+                <span id="calc-test-result" class="ml-2 text-sm text-gray-600 dark:text-gray-400"></span>
+            </div>
+        </div>
+    `;
+}
+
+async function testCalculation() {
+    const source = document.getElementById('calc-source').value;
+    const formula = document.getElementById('calc-formula').value;
+    const resultElement = document.getElementById('calc-test-result');
+    
+    if (!source || !formula) {
+        resultElement.textContent = "Please select source and enter formula";
+        return;
+    }
+    
+    try {
+        const calculation = createCalculatedField(formula, [{ name: 'data', url: source }]);
+        const result = await calculation.calculate();
+        resultElement.textContent = `Result: ${result}`;
+        resultElement.className = "ml-2 text-sm text-green-600 dark:text-green-400";
+    } catch (error) {
+        resultElement.textContent = `Error: ${error.message}`;
+        resultElement.className = "ml-2 text-sm text-red-600 dark:text-red-400";
+    }
+}
+
+// Database Saving Functions
+async function saveDashboard() {
+    try {
+        // Prepare dashboard data for saving
+        saveCurrentPageState(); // Save current page before serializing
+        
+        const dashboardData = {
+            id: dashboardState.id,
+            name: dashboardState.name || `Dashboard_${Date.now()}`,
+            pages: dashboardState.pages,
+            settings: dashboardState.settings,
+            dataSources: dashboardState.dataSources,
+            calculations: dashboardState.calculations
+        };
+        
+        const response = await fetch('/api/dashboards/save', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(dashboardData)
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            dashboardState.id = result.id;
+            showNotification("Dashboard saved successfully!", "success");
+            updateBrowserUrl();
+        } else {
+            throw new Error('Failed to save dashboard');
+        }
+    } catch (error) {
+        console.error("Error saving dashboard:", error);
+        showNotification("Error saving dashboard", "error");
+    }
+}
+
+async function loadDashboard(dashboardId) {
+    try {
+        const response = await fetch(`/api/dashboards/${dashboardId}`);
+        
+        if (response.ok) {
+            const dashboardData = await response.json();
+            
+            // Load dashboard state
+            dashboardState = {
+                ...dashboardState,
+                ...dashboardData
+            };
+            
+            // Update UI
+            updatePagesList();
+            switchToPage(dashboardData.currentPageId || 'home');
+            showNotification("Dashboard loaded successfully!", "success");
+        } else {
+            throw new Error('Failed to load dashboard');
+        }
+    } catch (error) {
+        console.error("Error loading dashboard:", error);
+        showNotification("Error loading dashboard", "error");
+    }
+}
+
+function loadDashboardFromUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const dashboardId = urlParams.get('id');
+    
+    if (dashboardId) {
+        loadDashboard(dashboardId);
+    }
+}
+
+function updateBrowserUrl() {
+    if (dashboardState.id) {
+        const newUrl = `${window.location.pathname}?id=${dashboardState.id}`;
+        window.history.replaceState(null, '', newUrl);
+    }
+}
+
+// Export Functions
+async function exportDashboard() {
+    try {
+        saveCurrentPageState();
+        
+        const exportData = {
+            dashboard: dashboardState,
+            timestamp: new Date().toISOString()
+        };
+        
+        const response = await fetch('/api/dashboards/export', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(exportData)
+        });
+        
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `dashboard_export_${dashboardState.name || 'unnamed'}.zip`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification("Dashboard exported successfully!", "success");
+        } else {
+            throw new Error('Failed to export dashboard');
+        }
+    } catch (error) {
+        console.error("Error exporting dashboard:", error);
+        showNotification("Error exporting dashboard", "error");
+    }
+}
+
+// Utility Functions
+function clearGrid() {
+    const cardGrid = document.getElementById("card-grid");
+    cardGrid.innerHTML = '';
+}
+
+function toggleDragInstructions(show) {
+    const existingInstructions = document.getElementById("drag-instructions");
+    if (existingInstructions) {
+        existingInstructions.remove();
+    }
+    
+    if (show) {
+        const instructions = document.createElement("div");
+        instructions.id = "drag-instructions";
+        instructions.className = "dark:text-gray-400 text-gray-500 mb-8 text-center";
+        instructions.innerHTML = `
+            <i class="fa-solid fa-mouse-pointer mb-4 text-4xl"></i>
+            <p class="text-lg">Drag components from the right sidebar to build your dashboard</p>
+            <p class="mt-2 opacity-75 text-sm">Hover over cards to see resize handles</p>
+        `;
+        document.getElementById("drop-zone").insertBefore(instructions, document.getElementById("card-grid"));
+    }
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+        type === 'success' ? 'bg-green-500 text-white' :
+        type === 'error' ? 'bg-red-500 text-white' :
+        'bg-blue-500 text-white'
+    }`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Add save and export buttons to the header
+function addDashboardControls() {
+    const headerActions = document.querySelector('header .flex.items-center.space-x-4');
+    if (headerActions) {
+        const controls = document.createElement('div');
+        controls.className = 'flex items-center space-x-2';
+        controls.innerHTML = `
+            <button onclick="saveDashboard()" class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm">
+                <i class="fas fa-save mr-1"></i> Save
+            </button>
+            <button onclick="exportDashboard()" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm">
+                <i class="fas fa-download mr-1"></i> Export
+            </button>
+        `;
+        headerActions.insertBefore(controls, headerActions.firstChild);
+    }
+}
+
+// Initialize dashboard controls
+document.addEventListener("DOMContentLoaded", function() {
+    addDashboardControls();
+});
 
 document.addEventListener('DOMContentLoaded', () => {
 generateComponentLibrary();
@@ -687,9 +1274,6 @@ document.addEventListener('DOMContentLoaded', function() {
         subroutes = [];
     }
     
-    console.log('Dashboard sources:', dashboardSource);
-    console.log('Subroutes:', subroutes);
-    
     // Existing initialization code
     generateComponentLibrary();
     initializeDragAndDrop();
@@ -760,40 +1344,102 @@ function generateStatsModalContent() {
 }
 
 function generateChartModalContent() {
-    return `
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Data Source</label>
-                <select id="chart-source" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" onchange="updateSubrouteOptions('chart')">
-                    <option value="">Select a source...</option>
-                    ${dashboardSource}
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Endpoint</label>
-                <select id="chart-subroute" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white subroute-selector" disabled>
-                    <option value="">Select an endpoint...</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Chart Type</label>
-                <select id="chart-type" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
-                    <option value="line">Line Chart</option>
-                    <option value="bar">Bar Chart</option>
-                    <option value="pie">Pie Chart</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">X-Axis Field</label>
-                <input type="text" id="chart-x-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" placeholder="e.g., date, category, name">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Y-Axis Field</label>
-                <input type="text" id="chart-y-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" placeholder="e.g., value, count, amount">
-            </div>
-        </div>
-    `;
+    const calcOptions = Object.values(dashboardState.calculations || {}).map(c =>
+        `<option value="${c.id}">${c.name}</option>`
+    ).join('');
+    const manualFields = 
+        '<div id="chart-manual-fields">' +
+            '<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Data Source</label>' +
+            '<select id="chart-source" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">' +
+                '<option value="">Select a source...</option>' +
+                dashboardSource.map(s => `<option value="${s[0]}">${s[2]}</option>`).join('') +
+            '</select>' +
+            '<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 mt-2">Endpoint</label>' +
+            '<select id="chart-subroute" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white subroute-selector">' +
+                '<option value="">Select an endpoint...</option>' +
+                subroutes.map(s => `<option value="${s[1]}">${s[1]}</option>`).join('') +
+            '</select>' +
+        '</div>';
+    const axisFields = 
+        '<div id="chart-axis-fields">' +
+            '<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">X-Axis Field</label>' +
+            '<input type="text" id="chart-x-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" placeholder="e.g., name">' +
+            '<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 mt-2">Y-Axis Field</label>' +
+            '<input type="text" id="chart-y-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" placeholder="e.g., count">' +
+        '</div>';
+    // Return the modal HTML
+    return (
+        '<div class="space-y-4">' +
+            '<div>' +
+                '<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Calculation</label>' +
+                '<select id="chart-calculation" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">' +
+                    '<option value="">None (manual)</option>' +
+                    calcOptions +
+                '</select>' +
+            '</div>' +
+            manualFields +
+            '<div>' +
+                '<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Chart Type</label>' +
+                '<select id="chart-type" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">' +
+                    '<option value="line">Line Chart</option>' +
+                    '<option value="bar">Bar Chart</option>' +
+                    '<option value="pie">Pie Chart</option>' +
+                '</select>' +
+            '</div>' +
+            axisFields +
+        '</div>'
+    );
 }
+
+// Attach calculation dropdown logic after modal is rendered
+document.addEventListener('change', async function(e) {
+    if (e.target && e.target.id === 'chart-calculation') {
+        const calcId = e.target.value;
+        const manualFields = document.getElementById('chart-manual-fields');
+        const axisFields = document.getElementById('chart-axis-fields');
+        if (calcId) {
+            manualFields.style.display = 'none';
+            const calc = dashboardState.calculations[calcId];
+            if (!calc) return;
+            const sourceUrl = dashboardSource[3];
+            try {
+                const usersRes = await fetch(sourceUrl + calc.subroute1);
+                const postsRes = await fetch(sourceUrl + calc.subroute2);
+                const users = await usersRes.json();
+                const posts = await postsRes.json();
+                let calcData = [];
+                try {
+                    calcData = Function('users', 'posts', 'return ' + calc.logic)(users, posts);
+                } catch (e) {
+                    calcData = [];
+                }
+                console.log('Calculation data:', calcData);
+                var keys = [];
+                if (Array.isArray(calcData) && calcData.length > 0 && typeof calcData[0] === 'object') {
+                    keys = Object.keys(calcData[0]);
+                }
+                axisFields.innerHTML =
+                    '<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">X-Axis Field</label>' +
+                    '<select id="chart-x-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">' +
+                        keys.map(k => `<option value="${k}">${k}</option>`).join('') +
+                    '</select>' +
+                    '<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 mt-2">Y-Axis Field</label>' +
+                    '<select id="chart-y-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">' +
+                        keys.map(k => `<option value="${k}">${k}</option>`).join('') +
+                    '</select>';
+            } catch (err) {
+                axisFields.innerHTML = '<div class="text-red-600">Failed to load calculation data</div>';
+            }
+        } else {
+            manualFields.style.display = 'block';
+            axisFields.innerHTML =
+                '<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">X-Axis Field</label>' +
+                '<input type="text" id="chart-x-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" placeholder="e.g., name">' +
+                '<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 mt-2">Y-Axis Field</label>' +
+                '<input type="text" id="chart-y-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" placeholder="e.g., count">';
+        }
+    }
+});
 
 function updateSubrouteOptions(widgetType) {
     const sourceSelect = document.getElementById(`${widgetType}-source`);
@@ -887,43 +1533,40 @@ async function applyStatsCustomization() {
 }
 
 async function applyChartCustomization() {
-    const sourceName = document.getElementById('chart-source').value;
-    const subroutePath = document.getElementById('chart-subroute').value;
+    const calcId = document.getElementById('chart-calculation').value;
     const chartType = document.getElementById('chart-type').value;
     const xField = document.getElementById('chart-x-field').value;
     const yField = document.getElementById('chart-y-field').value;
-    
-    if (!sourceName || !subroutePath) {
-        alert('Please select both a source and endpoint');
-        return;
-    }
-    
-    // Find the source route - source tuple structure: [name, route, ...]
-    const source = dashboardSource.find(s => s[0] === sourceName);
-    if (!source) {
-        alert('Source not found');
-        return;
-    }
-    
-    // Construct the API URL - route is at index 1
-    const apiUrl = `${source[3]}${subroutePath}`;
-    
-    try {
-        const response = await fetch(apiUrl);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+    let chartData = [];
+    if (calcId) {
+        // Use calculation
+        const calc = dashboardState.calculations[calcId];
+        if (!calc) return alert('Calculation not found');
+        // Fetch both subroutes
+        const sourceUrl = dashboardSource[3];
+        const usersRes = await fetch(sourceUrl + calc.subroute1);
+        const postsRes = await fetch(sourceUrl + calc.subroute2);
+        const users = await usersRes.json();
+        const posts = await postsRes.json();
+        // Run user logic
+        try {
+            chartData = Function('users', 'posts', `return ${calc.logic}`)(users, posts);
+        } catch (e) {
+            alert('Calculation error: ' + e.message);
+            return;
         }
-        
-        const data = await response.json();
-        console.log('Chart data fetched:', data);
-        
-        // Update the card content with fetched data
-        updateChartCard(currentCustomizingCard, data, chartType, xField, yField);
-        
-    } catch (error) {
-        console.error('Error fetching chart data:', error);
-        alert('Failed to fetch data. Check console for details.');
+    } else {
+        // Manual mode (existing logic)
+        const sourceName = document.getElementById('chart-source').value;
+        const subroutePath = document.getElementById('chart-subroute').value;
+        if (!sourceName || !subroutePath) return alert('Please select both a source and endpoint');
+        const source = dashboardSource.find(s => s[0] === sourceName);
+        if (!source) return alert('Source not found');
+        const apiUrl = `${source[3]}${subroutePath}`;
+        const res = await fetch(apiUrl);
+        chartData = await res.json();
     }
+    updateChartCard(currentCustomizingCard, chartData, chartType, xField, yField);
 }
 
 function updateStatsCard(card, leftData, rightData, leftField, rightField) {
@@ -961,22 +1604,202 @@ function updateStatsCard(card, leftData, rightData, leftField, rightField) {
     cardContent.innerHTML = statsHtml;
 }
 
-function updateChartCard(card, data, chartType, xField, yField) {
+function updateChartCard(card, data, chartType, xField = 'name', yField = 'count') {
     const cardContent = card.querySelector('.card-content');
-    
-    // Simple chart placeholder update - you would integrate with actual charting library here
-    const dataPreview = Array.isArray(data) ? data.slice(0, 3) : [data];
-    const previewText = dataPreview.map(item => 
-        `${item[xField]}: ${item[yField]}`
-    ).join(', ');
-    
     cardContent.innerHTML = `
-        <div class="py-8 bg-gray-100 dark:bg-gray-700 rounded flex flex-col items-center justify-center">
-            <i class="fas fa-chart-${chartType === 'pie' ? 'pie' : chartType === 'bar' ? 'bar' : 'line'} text-4xl text-gray-400 mb-2"></i>
-            <div class="text-sm text-gray-600 dark:text-gray-400 text-center">
-                <div>Type: ${chartType.charAt(0).toUpperCase() + chartType.slice(1)} Chart</div>
-                <div class="mt-1">Data: ${previewText}${data.length > 3 ? '...' : ''}</div>
+        <canvas id="chartjs-${card.dataset.cardId}" class="w-full h-64"></canvas>
+    `;
+    
+    setTimeout(() => {
+        if (window.Chart) {
+            const canvas = document.getElementById(`chartjs-${card.dataset.cardId}`);
+            if (!canvas) {
+                console.error('Canvas element not found');
+                return;
+            }
+            
+            const ctx = canvas.getContext('2d');
+            
+            // Defensive: filter out undefined/null and empty objects
+            const filteredData = Array.isArray(data) ? data.filter(d => d && typeof d === 'object') : [];
+            
+            if (filteredData.length === 0) {
+                cardContent.innerHTML = `<div class="text-gray-600 p-4">No data available for chart</div>`;
+                return;
+            }
+            
+            const labels = filteredData.map(d => d[xField] ?? 'Unknown');
+            const values = filteredData.map(d => {
+                const val = d[yField];
+                return typeof val === 'number' ? val : (parseFloat(val) || 0);
+            });
+            
+            // Destroy existing chart if it exists
+            if (window.chartInstances && window.chartInstances[card.dataset.cardId]) {
+                window.chartInstances[card.dataset.cardId].destroy();
+            }
+            
+            // Initialize chart instances tracker
+            if (!window.chartInstances) {
+                window.chartInstances = {};
+            }
+            
+            // Create the chart
+            window.chartInstances[card.dataset.cardId] = new Chart(ctx, {
+                type: chartType,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: yField,
+                        data: values,
+                        backgroundColor: chartType === 'line' ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.5)',
+                        borderColor: 'rgba(59,130,246,1)',
+                        borderWidth: 2,
+                        fill: chartType === 'line' ? true : false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { 
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: chartType !== 'pie' && chartType !== 'doughnut' ? {
+                        y: {
+                            beginAtZero: true
+                        }
+                    } : {}
+                }
+            });
+        } else {
+            cardContent.innerHTML = `<div class="text-red-600 mt-2 p-4">ChartJS library not loaded</div>`;
+        }
+    }, 100);
+}
+
+// Load ChartJS if not present
+if (!window.Chart) {
+    const chartJsScript = document.createElement('script');
+    chartJsScript.src = "https://cdn.jsdelivr.net/npm/chart.js";
+    document.head.appendChild(chartJsScript);
+}
+
+function showCalculationsPage() {
+    document.getElementById('calculations-page').classList.remove('hidden');
+    document.getElementById('drop-zone').classList.add('hidden');
+    renderCalculationsList();
+}
+function hideCalculationsPage() {
+    document.getElementById('calculations-page').classList.add('hidden');
+    document.getElementById('drop-zone').classList.remove('hidden');
+}
+function renderCalculationsList() {
+    const list = document.getElementById('calculations-list');
+    list.innerHTML = '';
+    Object.values(dashboardState.calculations || {}).forEach(calc => {
+        const item = document.createElement('div');
+        item.className = 'p-4 bg-gray-100 dark:bg-gray-700 rounded shadow flex justify-between items-center';
+        item.innerHTML = `
+            <div>
+                <div class="font-semibold">${calc.name}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">${calc.description || ''}</div>
+            </div>
+            <div class="flex space-x-2">
+                <button class="text-blue-600 hover:underline" onclick="editCalculation('${calc.id}')">Edit</button>
+                <button class="text-red-600 hover:underline" onclick="deleteCalculation('${calc.id}')">Delete</button>
+            </div>
+        `;
+        list.appendChild(item);
+    });
+}
+function showCalculationModal(calcId = null) {
+    const modal = document.getElementById('calculation-modal');
+    const content = document.getElementById('calculation-modal-content');
+    let calc = calcId ? dashboardState.calculations[calcId] : {};
+    content.innerHTML = `
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name</label>
+                <input type="text" id="calc-name" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" value="${calc.name || ''}">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+                <input type="text" id="calc-description" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" value="${calc.description || ''}">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">First Subroute (e.g. /users)</label>
+                <select id="calc-subroute1" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
+                    <option value="">Select...</option>
+                    ${dashboardState.subroutes.map(s => `<option value="${s[1]}">${s[1]}</option>`).join('')}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Second Subroute (e.g. /posts)</label>
+                <select id="calc-subroute2" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
+                    <option value="">Select...</option>
+                    ${dashboardState.subroutes.map(s => `<option value="${s[1]}">${s[1]}</option>`).join('')}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Calculation Logic (JS expression)</label>
+                <textarea id="calc-logic" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" rows="3" placeholder="e.g. users.map(u => ({ name: u.name, count: posts.filter(p => p.userId === u.id).length }))">${calc.logic || ''}</textarea>
+                <div class="text-xs text-gray-500 mt-1">You get two arrays: <b>users</b> and <b>posts</b>. Return an array of objects for charting.</div>
             </div>
         </div>
     `;
+    modal.classList.remove('hidden');
+    modal.dataset.editingId = calcId || '';
+}
+function closeCalculationModal() {
+    document.getElementById('calculation-modal').classList.add('hidden');
+}
+
+function saveCalculation() {
+    const id = document.getElementById('calculation-modal').dataset.editingId || `calc_${Date.now()}`;
+    const name = document.getElementById('calc-name').value;
+    const description = document.getElementById('calc-description').value;
+    const subroute1 = document.getElementById('calc-subroute1').value;
+    const subroute2 = document.getElementById('calc-subroute2').value;
+    const logic = document.getElementById('calc-logic').value;
+    dashboardState.calculations = dashboardState.calculations || {};
+    dashboardState.calculations[id] = { id, name, description, subroute1, subroute2, logic };
+
+    // Run the calculation logic and log the output
+    (async () => {
+        try {
+            // Find the source URL (assume first dataSource for now)
+            const sourceUrl = dashboardSource[3] || (dashboardState.dataSources && dashboardState.dataSources[0] && dashboardState.dataSources[0][3]) || '';
+            if (sourceUrl && subroute1 && subroute2 && logic) {
+                const usersRes = await fetch(sourceUrl + subroute1);
+                const postsRes = await fetch(sourceUrl + subroute2);
+                const users = await usersRes.json();
+                const posts = await postsRes.json();
+                let calcData = [];
+                try {
+                    calcData = Function('users', 'posts', 'return ' + logic)(users, posts);
+                } catch (e) {
+                    calcData = [];
+                }
+                console.log('Calculation output:', calcData);
+            }
+        } catch (err) {
+            console.error('Error running calculation logic:', err);
+        }
+    })();
+
+    closeCalculationModal();
+    renderCalculationsList();
+}
+
+function editCalculation(calcId) {
+    showCalculationModal(calcId);
+}
+function deleteCalculation(calcId) {
+    if (confirm('Delete this calculation?')) {
+        delete dashboardState.calculations[calcId];
+        renderCalculationsList();
+    }
 }
