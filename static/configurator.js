@@ -1690,31 +1690,195 @@ if (!window.Chart) {
 function showCalculationsPage() {
     document.getElementById('calculations-page').classList.remove('hidden');
     document.getElementById('drop-zone').classList.add('hidden');
-    renderCalculationsList();
+    renderCalculationsBuilder();
 }
 function hideCalculationsPage() {
     document.getElementById('calculations-page').classList.add('hidden');
     document.getElementById('drop-zone').classList.remove('hidden');
 }
-function renderCalculationsList() {
+function renderCalculationsBuilder() {
     const list = document.getElementById('calculations-list');
     list.innerHTML = '';
-    Object.values(dashboardState.calculations || {}).forEach(calc => {
-        const item = document.createElement('div');
-        item.className = 'p-4 bg-gray-100 dark:bg-gray-700 rounded shadow flex justify-between items-center';
-        item.innerHTML = `
-            <div>
-                <div class="font-semibold">${calc.name}</div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">${calc.description || ''}</div>
+    // Calculation builder UI with dropzone full width at bottom
+    const builder = document.createElement('div');
+    builder.className = 'calculation-builder bg-white dark:bg-gray-800 rounded shadow p-6 flex flex-col';
+    builder.innerHTML = `
+        <h3 class="text-lg font-bold mb-4 text-gray-900 dark:text-white">Calculation Builder</h3>
+        <div class="flex flex-row gap-6 mb-6">
+            <div class="w-1/2">
+                <h4 class="font-semibold mb-2">Data Sources</h4>
+                <div id="calc-datasource-list" class="space-y-2"></div>
             </div>
-            <div class="flex space-x-2">
-                <button class="text-blue-600 hover:underline" onclick="editCalculation('${calc.id}')">Edit</button>
-                <button class="text-red-600 hover:underline" onclick="deleteCalculation('${calc.id}')">Delete</button>
+            <div class="w-1/2">
+                <h4 class="font-semibold mb-2">Available Operations</h4>
+                <div id="calc-operations-list" class="flex flex-wrap gap-2"></div>
             </div>
-        `;
-        list.appendChild(item);
+        </div>
+        <div class="w-full">
+            <h4 class="font-semibold mb-2">Calculation Flow</h4>
+            <div id="calc-flow-dropzone" class="min-h-[120px] w-full border-2 border-dashed border-blue-400 rounded p-4 bg-blue-50 dark:bg-blue-900/20 flex flex-row gap-4 overflow-x-auto"></div>
+            <button class="mt-4 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" onclick="saveCalculationFlow()">Save Calculation</button>
+        </div>
+        <div id="calc-flow-preview" class="mt-6"></div>
+    `;
+    list.appendChild(builder);
+    renderCalculationDataSources();
+    renderCalculationOperations();
+    renderCalculationFlow();
+}
+
+function renderCalculationDataSources() {
+    const dsList = document.getElementById('calc-datasource-list');
+    dsList.innerHTML = '';
+    // Render subroutes as data sources for calculation builder
+    subroutes.forEach((subroute, idx) => {
+        // subroute: [id, path, source_name, source_created_by]
+        const btn = document.createElement('button');
+        btn.className = 'draggable-ds bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded shadow hover:bg-blue-100 dark:hover:bg-blue-800 text-gray-800 dark:text-white w-full text-left';
+        btn.draggable = true;
+        btn.textContent = subroute[1]; // Show the subroute path
+        btn.dataset.subrouteIdx = idx;
+        btn.addEventListener('dragstart', function(e) {
+            e.dataTransfer.setData('text/plain', JSON.stringify({
+                subrouteIdx: idx
+            }));
+        });
+        dsList.appendChild(btn);
     });
 }
+
+function renderCalculationOperations() {
+    const opsList = document.getElementById('calc-operations-list');
+    opsList.innerHTML = '';
+    const operations = [
+        { type: 'filter', label: 'Filter', desc: 'Filter data by field/value' },
+        { type: 'group', label: 'Group By', desc: 'Group data by field' },
+        { type: 'count', label: 'Count', desc: 'Count items' },
+        { type: 'sum', label: 'Sum', desc: 'Sum field values' },
+        { type: 'join', label: 'Join', desc: 'Join two data sources' },
+        { type: 'map', label: 'Map', desc: 'Transform fields' }
+    ];
+    operations.forEach(op => {
+        const btn = document.createElement('button');
+        btn.className = 'draggable-op bg-blue-100 dark:bg-blue-800 px-3 py-2 rounded shadow hover:bg-blue-200 dark:hover:bg-blue-900 text-blue-900 dark:text-blue-200';
+        btn.draggable = true;
+        btn.textContent = op.label;
+        btn.title = op.desc;
+        btn.dataset.opType = op.type;
+        btn.addEventListener('dragstart', handleCalcDragStart);
+        opsList.appendChild(btn);
+    });
+}
+
+function renderCalculationFlow() {
+    const flowZone = document.getElementById('calc-flow-dropzone');
+    flowZone.innerHTML = '';
+    flowZone.addEventListener('dragover', function(e) { e.preventDefault(); });
+    flowZone.addEventListener('drop', handleCalcDrop);
+    // Show current flow steps as nodes (simple version)
+    window.currentCalcFlow = window.currentCalcFlow || [];
+    window.currentCalcFlow.forEach((step, idx) => {
+        const node = document.createElement('div');
+        node.className = 'calc-flow-node bg-white dark:bg-gray-700 border border-blue-300 dark:border-blue-700 rounded px-4 py-3 flex flex-col items-center justify-center min-w-[120px] relative';
+        node.innerHTML = `<span class="font-semibold">${step.label || step.type || step.sourceName}</span>`;
+        // Show data sources for operations
+        if (step.type !== 'source' && step.inputs && step.inputs.length) {
+            node.innerHTML += `<div class="text-xs mt-2 text-gray-500">Inputs: ${step.inputs.map(i => i.sourceName || i.label || i.type).join(', ')}</div>`;
+        }
+        node.innerHTML += `<button class="absolute top-1 right-1 text-red-500" onclick="removeCalcFlowStep(${idx})"><i class="fa fa-times"></i></button>`;
+        node.onclick = function() { editCalcFlowNode(idx); };
+        flowZone.appendChild(node);
+        // Draw simple arrows (not SVG, just a line for now)
+        if (idx > 0) {
+            const arrow = document.createElement('div');
+            arrow.className = 'calc-flow-arrow flex items-center justify-center';
+            arrow.innerHTML = '<span class="mx-2 text-blue-400">→</span>';
+            flowZone.appendChild(arrow);
+        }
+    });
+}
+
+function handleCalcDragStart(e) {
+    e.dataTransfer.setData('text/plain', JSON.stringify({
+        dsIdx: e.target.dataset.dsIdx,
+        opType: e.target.dataset.opType
+    }));
+}
+
+function handleCalcDrop(e) {
+    e.preventDefault();
+    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+    window.currentCalcFlow = window.currentCalcFlow || [];
+    // Dragging a subroute (data source)
+    if (data.subrouteIdx !== undefined) {
+        const subroute = subroutes[data.subrouteIdx];
+        window.currentCalcFlow.push({ type: 'source', sourceName: subroute[1], sourceUrl: dashboardSource[3] + subroute[1] });
+    }
+    // Dragging an operation
+    else if (data.opType) {
+        // By default, attach previous node(s) as inputs
+        let inputs = [];
+        if (window.currentCalcFlow.length > 0) {
+            inputs.push(window.currentCalcFlow[window.currentCalcFlow.length - 1]);
+        }
+        window.currentCalcFlow.push({ type: data.opType, label: data.opType.charAt(0).toUpperCase() + data.opType.slice(1), inputs });
+    }
+    renderCalculationFlow();
+}
+
+async function saveCalculationFlow() {
+    const preview = document.getElementById('calc-flow-preview');
+    // For demo, show steps and preview result data
+    let resultData = null;
+    let error = null;
+    try {
+        // Only support single source + single operation for now
+        if (window.currentCalcFlow.length === 0) throw new Error('No flow defined');
+        let sourceNode = window.currentCalcFlow.find(n => n.type === 'source');
+        if (!sourceNode) throw new Error('No data source in flow');
+        // Fetch data from source
+        const res = await fetch(sourceNode.sourceUrl);
+        const data = await res.json();
+        // Apply operation (very basic demo)
+        let opNode = window.currentCalcFlow.find(n => n.type !== 'source');
+        if (opNode) {
+            if (opNode.type === 'count') {
+                resultData = Array.isArray(data) ? data.length : 0;
+            } else if (opNode.type === 'sum') {
+                // Sum first numeric field
+                if (Array.isArray(data) && data.length > 0) {
+                    const keys = Object.keys(data[0]);
+                    const numKey = keys.find(k => typeof data[0][k] === 'number');
+                    resultData = data.reduce((acc, item) => acc + (item[numKey] || 0), 0);
+                } else {
+                    resultData = 0;
+                }
+            } else if (opNode.type === 'filter') {
+                // Just show first 5 items
+                resultData = Array.isArray(data) ? data.slice(0, 5) : [];
+            } else {
+                resultData = data;
+            }
+        } else {
+            resultData = data;
+        }
+    } catch (e) {
+        error = e.message;
+    }
+    preview.innerHTML = '<div class="p-4 bg-gray-100 dark:bg-gray-800 rounded">' +
+        '<strong>Calculation Steps:</strong><br>' +
+        window.currentCalcFlow.map((step, i) => `${i+1}. ${step.label || step.type || step.sourceName}`).join('<br>') +
+        (error ? `<div class="mt-4 text-red-600">Error: ${error}</div>` :
+            `<div class="mt-4"><strong>Result Preview:</strong><pre class="bg-white dark:bg-gray-900 p-2 rounded text-xs">${JSON.stringify(resultData, null, 2)}</pre></div>`) +
+        '</div>';
+    // TODO: Convert flow to actual calculation logic and save to dashboardState.calculations
+}
+
+function editCalcFlowNode(idx) {
+    // For future: show modal to edit node parameters (e.g. filter field/value)
+    alert('Node editing UI coming soon!');
+}
+
 function showCalculationModal(calcId = null) {
     const modal = document.getElementById('calculation-modal');
     const content = document.getElementById('calculation-modal-content');
