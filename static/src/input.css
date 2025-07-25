@@ -3,3 +3,65 @@
 @plugin "flowbite/plugin";
 @source "../../node_modules/flowbite";
 @custom-variant dark (&:where(.dark, .dark *));
+
+.calc-flow-node:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.calc-flow-node.configured {
+    border-color: #10b981;
+    background: linear-gradient(135deg, #f0fdf4, #ffffff);
+}
+
+.dark .calc-flow-node.configured {
+    background: linear-gradient(135deg, #064e3b, #374151);
+}
+
+.field-mapping-row {
+    transition: all 0.2s ease;
+}
+
+.field-mapping-row:hover {
+    background-color: #f9fafb;
+}
+
+.dark .field-mapping-row:hover {
+    background-color: #374151;
+}
+
+#node-preview {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.preview-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: #6b7280;
+}
+
+.preview-error {
+    color: #ef4444;
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.dark .preview-error {
+    background-color: #7f1d1d;
+    border-color: #991b1b;
+    color: #fca5a5;
+}
+
+.node-config-section {
+    margin-bottom: 1.5rem;
+}
+
+.node-config-section:last-child {
+    margin-bottom: 0;
+}

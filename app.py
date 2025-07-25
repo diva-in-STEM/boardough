@@ -279,10 +279,10 @@ def update_source(sourceName, sourceCreatedBy):
             # Get new values from form
             new_source_name = request.form.get('name')
             new_source_route = request.form.get('route')
-           
+            
             # Handle subroutes
             subroutes = [value for key, value in request.form.items() if key.startswith('subroute') and value.strip()]
-           
+            
         except Exception as e:
             return redirect('/sources?error=' + str(e))
         else:
@@ -293,31 +293,31 @@ def update_source(sourceName, sourceCreatedBy):
                     (original_name, created_by), 
                     one=True
                 )
-               
+                
                 if current_data is None:
                     return redirect('/sources?error=Source not found')
-               
+                
                 current_name = current_data[0]
                 current_route = current_data[1]
-               
+                
                 # Build update query dynamically based on changed values
                 update_fields = []
                 update_values = []
-               
+                
                 if new_source_name and new_source_name != current_name:
                     update_fields.append('name = ?')
                     update_values.append(new_source_name)
-               
+                
                 if new_source_route and new_source_route != current_route:
                     update_fields.append('route = ?')
                     update_values.append(new_source_route)
-               
+                
                 # Only execute update if there are changes
                 if update_fields:
                     update_values.extend([original_name, created_by])
                     query = f"UPDATE sources SET {', '.join(update_fields)} WHERE name = ? AND created_by = ?"
                     query_db(query, tuple(update_values))
-               
+                
                 # Handle subroutes update
                 subroute_errors = []
                 
@@ -327,13 +327,15 @@ def update_source(sourceName, sourceCreatedBy):
                     
                     # Delete existing subroutes
                     query_db('DELETE FROM subroutes WHERE source_name = ? AND source_created_by = ?', 
-                           (original_name, created_by))
+                            (original_name, created_by))
                     
                     # Insert new subroutes
+                    print(subroutes)
                     for subroute in subroutes:
                         try:
                             query_db('INSERT INTO subroutes (path, source_name, source_created_by) VALUES (?, ?, ?)', 
-                                   (subroute, source_name_for_subroutes, created_by))
+                                    (subroute, source_name_for_subroutes, created_by))
+                            print(subroute, source_name_for_subroutes, created_by)
                         except Exception as e:
                             print(f"Error updating subroute {subroute}: {e}")
                             subroute_errors.append(subroute)
@@ -344,9 +346,9 @@ def update_source(sourceName, sourceCreatedBy):
                         return render_template("sources.html", sources=sources, error=f"Source updated but failed to update subroutes: {', '.join(subroute_errors)}")
                     except:
                         return render_template("sources.html", sources=[], error=f"Source updated but failed to update subroutes: {', '.join(subroute_errors)}")
-               
+                
                 return redirect('/sources')
-               
+                
             except Exception as e:
                 return redirect('/sources?error=' + str(e))
     else:

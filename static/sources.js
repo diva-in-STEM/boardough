@@ -137,14 +137,9 @@ function addEditSubroute(defaultValue = '', subrouteId = null) {
     const newSubroute = document.createElement('div');
     newSubroute.className = 'edit-subroute-item';
     
-    // Include hidden input for subroute ID if it exists (for existing subroutes)
-    const hiddenIdInput = subrouteId ? 
-        `<input type="hidden" name="subroute_id${editSubrouteCount}" value="${subrouteId}">` : '';
-    
     newSubroute.innerHTML = `
         <label for="edit_subroute${editSubrouteCount}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Subroute ${editSubrouteCount}</label>
         <div class="flex gap-2">
-            ${hiddenIdInput}
             <input type="text" name="subroute${editSubrouteCount}" id="edit_subroute${editSubrouteCount}" value="${defaultValue}" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="/data/endpoint${editSubrouteCount}">
             <button type="button" class="hover:cursor-pointer text-red-600 hover:text-red-800 p-2.5 rounded-lg hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 remove-edit-subroute">
                 <i class="fa-solid fa-minus"></i>
