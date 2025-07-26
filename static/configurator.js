@@ -1412,87 +1412,104 @@ async function applyCustomization() {
 }
 
 async function applyStatsCustomization() {
-    const sourceName = document.getElementById('stats-source').value;
-    const leftSubroutePath = document.getElementById('stats-subroute-left').value;
-    const rightSubroutePath = document.getElementById('stats-subroute-right').value;
-    const leftField = document.getElementById('stats-left-field').value;
-    const rightField = document.getElementById('stats-right-field').value;
-    console.log(leftSubroutePath, rightSubroutePath)
-    
-    if (!sourceName || !leftSubroutePath || !rightSubroutePath) {
-        alert('Please select both a source and endpoint');
-        return;
-    }
-    
-    // Find the source route
-    const source = dashboardSource
-    if (!source) {
-        alert('Source not found');
-        return;
-    }
-    
-    // Construct the API URL
-    const leftApiUrl = `${source[3]}${leftSubroutePath}`;
-    const rightApiUrl = `${source[3]}${rightSubroutePath}`;
-    
-    try {
-        const responseLeft = await fetch(leftApiUrl);
-        if (!responseLeft.ok) {
-            throw new Error(`HTTP error! status: ${responseLeft.status}`);
-        }
+    if (!currentCustomizingCard) return;
 
-        const responseRight = await fetch(rightApiUrl);
-        if (!responseRight.ok) {
-            throw new Error(`HTTP error! status: ${responseRight.status}`);
-        }
-        
-        const leftData = await responseLeft.json();
-        const rightData = await responseRight.json();
-        console.log('Stats data fetched:', leftData, rightData);
-        
-        // Update the card content with fetched data
+    const source = document.getElementById("stats-source").value;
+    const leftSubroute = document.getElementById("stats-subroute-left").value;
+    const rightSubroute = document.getElementById("stats-subroute-right").value;
+    const leftField = document.getElementById("stats-left-field").value;
+    const rightField = document.getElementById("stats-right-field").value;
+
+    if (!source || !leftSubroute || !rightSubroute) {
+        return alert("Please select both a source and endpoint");
+    }
+
+    const sourceConfig = dashboardSource;
+    if (!sourceConfig) {
+        return alert("Source not found");
+    }
+
+    const leftUrl = `${sourceConfig[3]}${leftSubroute}`;
+    const rightUrl = `${sourceConfig[3]}${rightSubroute}`;
+
+    try {
+        // Use cached fetch with 10 minute TTL for stats
+        const [leftResponse, rightResponse] = await Promise.all([
+            cachedFetch(leftUrl, {}, { ttl: 10 * 60 * 1000 }),
+            cachedFetch(rightUrl, {}, { ttl: 10 * 60 * 1000 })
+        ]);
+
+        const leftData = await leftResponse.json();
+        const rightData = await rightResponse.json();
+
+        console.log("Stats data fetched:", leftData, rightData);
         updateStatsCard(currentCustomizingCard, leftData, rightData, leftField, rightField);
-        
     } catch (error) {
-        console.error('Error fetching stats data:', error);
-        alert('Failed to fetch data. Check console for details.');
+        console.error("Error fetching stats data:", error);
+        alert("Failed to fetch data. Check console for details.");
     }
 }
 
 async function applyChartCustomization() {
-    const calcId = document.getElementById('chart-calculation').value;
-    const chartType = document.getElementById('chart-type').value;
-    const xField = document.getElementById('chart-x-field').value;
-    const yField = document.getElementById('chart-y-field').value;
+    const calculationId = document.getElementById("chart-calculation").value;
+    const chartType = document.getElementById("chart-type").value;
+    const xField = document.getElementById("chart-x-field").value;
+    const yField = document.getElementById("chart-y-field").value;
+
     let chartData = [];
-    if (calcId) {
-        // Use calculation
-        const calc = dashboardState.calculations[calcId];
-        if (!calc) return alert('Calculation not found');
-        // Fetch both subroutes
-        const sourceUrl = dashboardSource[3];
-        const usersRes = await fetch(sourceUrl + calc.subroute1);
-        const postsRes = await fetch(sourceUrl + calc.subroute2);
-        const users = await usersRes.json();
-        const posts = await postsRes.json();
-        // Run user logic
+
+    if (calculationId) {
+        const calculation = dashboardState.calculations[calculationId];
+        if (!calculation) {
+            return alert("Calculation not found");
+        }
+
+        const baseUrl = dashboardSource[3];
+        
         try {
-            chartData = Function('users', 'posts', `return ${calc.logic}`)(users, posts);
-        } catch (e) {
-            alert('Calculation error: ' + e.message);
-            return;
+            // Use cached fetch with 5 minute TTL for calculation data
+            const [response1, response2] = await Promise.all([
+                cachedFetch(baseUrl + calculation.subroute1, {}, { ttl: 5 * 60 * 1000 }),
+                cachedFetch(baseUrl + calculation.subroute2, {}, { ttl: 5 * 60 * 1000 })
+            ]);
+
+            const data1 = await response1.json();
+            const data2 = await response2.json();
+
+            try {
+                chartData = Function("users", "posts", `return ${calculation.logic}`)(data1, data2);
+            } catch (error) {
+                return alert("Calculation error: " + error.message);
+            }
+        } catch (error) {
+            console.error("Error fetching calculation data:", error);
+            return alert("Failed to fetch calculation data.");
         }
     } else {
-        // Manual mode (existing logic)
-        const sourceName = document.getElementById('chart-source').value;
-        const subroutePath = document.getElementById('chart-subroute').value;
-        if (!sourceName || !subroutePath) return alert('Please select both a source and endpoint');
-        const source = dashboardSource.find(s => s[0] === sourceName);
-        if (!source) return alert('Source not found');
-        const apiUrl = `${source[3]}${subroutePath}`;
-        const res = await fetch(apiUrl);
-        chartData = await res.json();
+        const source = document.getElementById("chart-source").value;
+        const subroute = document.getElementById("chart-subroute").value;
+
+        if (!source || !subroute) {
+            return alert("Please select both a source and endpoint");
+        }
+
+        const sourceConfig = dashboardSource.find(s => s[0] === source);
+        if (!sourceConfig) {
+            return alert("Source not found");
+        }
+
+        const url = `${sourceConfig[3]}${subroute}`;
+        
+        try {
+            // Use cached fetch with 5 minute TTL for chart data
+            const response = await cachedFetch(url, {}, { ttl: 5 * 60 * 1000 });
+            chartData = await response.json();
+        } catch (error) {
+            console.error("Error fetching chart data:", error);
+            return alert("Failed to fetch chart data.");
+        }
     }
+
     updateChartCard(currentCustomizingCard, chartData, chartType, xField, yField);
 }
 
@@ -1615,6 +1632,237 @@ if (!window.Chart) {
 }
 
 // Enhanced calculation flow with improved operations and better data processing
+
+// In-Memory API Cache System
+class APICache {
+    constructor(defaultTTL = 5 * 60 * 1000) { // 5 minutes default TTL
+        this.cache = new Map();
+        this.defaultTTL = defaultTTL;
+        this.stats = {
+            hits: 0,
+            misses: 0,
+            requests: 0
+        };
+    }
+
+    // Generate cache key from URL and options
+    generateKey(url, options = {}) {
+        const method = options.method || 'GET';
+        const body = options.body ? JSON.stringify(options.body) : '';
+        return `${method}:${url}:${body}`;
+    }
+
+    // Set cache entry with TTL
+    set(key, data, ttl = this.defaultTTL) {
+        const expiry = Date.now() + ttl;
+        this.cache.set(key, {
+            data: JSON.parse(JSON.stringify(data)), // Deep clone to prevent mutations
+            expiry: expiry,
+            timestamp: Date.now()
+        });
+    }
+
+    // Get cache entry if not expired
+    get(key) {
+        const entry = this.cache.get(key);
+        if (!entry) {
+            return null;
+        }
+
+        if (Date.now() > entry.expiry) {
+            this.cache.delete(key);
+            return null;
+        }
+
+        return JSON.parse(JSON.stringify(entry.data)); // Return deep clone
+    }
+
+    // Check if key exists and is not expired
+    has(key) {
+        return this.get(key) !== null;
+    }
+
+    // Clear expired entries
+    cleanup() {
+        const now = Date.now();
+        for (const [key, entry] of this.cache.entries()) {
+            if (now > entry.expiry) {
+                this.cache.delete(key);
+            }
+        }
+    }
+
+    // Clear all cache
+    clear() {
+        this.cache.clear();
+        this.stats = { hits: 0, misses: 0, requests: 0 };
+    }
+
+    // Get cache statistics
+    getStats() {
+        return {
+            ...this.stats,
+            size: this.cache.size,
+            hitRate: this.stats.requests > 0 ? (this.stats.hits / this.stats.requests * 100).toFixed(2) + '%' : '0%'
+        };
+    }
+
+    // Invalidate cache entries by pattern
+    invalidateByPattern(pattern) {
+        const regex = new RegExp(pattern);
+        for (const key of this.cache.keys()) {
+            if (regex.test(key)) {
+                this.cache.delete(key);
+            }
+        }
+    }
+}
+
+function clearAPICache() {
+    window.apiCache.clear();
+    console.log("API cache cleared");
+}
+
+function getCacheStats() {
+    const stats = window.apiCache.getStats();
+    console.log("Cache Statistics:", stats);
+    return stats;
+}
+
+function cleanupExpiredCache() {
+    window.apiCache.cleanup();
+    console.log("Expired cache entries cleaned up");
+}
+
+function invalidateCacheByPattern(pattern) {
+    window.apiCache.invalidateByPattern(pattern);
+    console.log(`Cache entries matching pattern "${pattern}" invalidated`);
+}
+
+
+// Auto cleanup every 10 minutes
+setInterval(() => {
+    cleanupExpiredCache();
+}, 10 * 60 * 1000);
+
+
+document.addEventListener("change", async function(event) {
+    if (event.target && event.target.id === "chart-calculation") {
+        const calculationId = event.target.value;
+        const manualFields = document.getElementById("chart-manual-fields");
+        const axisFields = document.getElementById("chart-axis-fields");
+
+        if (calculationId) {
+            manualFields.style.display = "none";
+            
+            const calculation = dashboardState.calculations[calculationId];
+            if (!calculation) return;
+
+            const baseUrl = dashboardSource[3];
+            
+            try {
+                // Use cached fetch for calculation preview
+                const [response1, response2] = await Promise.all([
+                    cachedFetch(baseUrl + calculation.subroute1, {}, { ttl: 5 * 60 * 1000 }),
+                    cachedFetch(baseUrl + calculation.subroute2, {}, { ttl: 5 * 60 * 1000 })
+                ]);
+
+                const data1 = await response1.json();
+                const data2 = await response2.json();
+
+                let calculationResult = [];
+                try {
+                    calculationResult = Function("users", "posts", "return " + calculation.logic)(data1, data2);
+                } catch (error) {
+                    calculationResult = [];
+                }
+
+                console.log("Calculation data:", calculationResult);
+
+                let availableFields = [];
+                if (Array.isArray(calculationResult) && calculationResult.length > 0 && typeof calculationResult[0] === 'object') {
+                    availableFields = Object.keys(calculationResult[0]);
+                }
+
+                axisFields.innerHTML = `
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">X-Axis Field</label>
+                    <select id="chart-x-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
+                        ${availableFields.map(field => `<option value="${field}">${field}</option>`).join('')}
+                    </select>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 mt-2">Y-Axis Field</label>
+                    <select id="chart-y-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
+                        ${availableFields.map(field => `<option value="${field}">${field}</option>`).join('')}
+                    </select>
+                `;
+            } catch (error) {
+                axisFields.innerHTML = '<div class="text-red-600">Failed to load calculation data</div>';
+            }
+        } else {
+            manualFields.style.display = "block";
+            axisFields.innerHTML = `
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">X-Axis Field</label>
+                <input type="text" id="chart-x-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" placeholder="e.g., name">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 mt-2">Y-Axis Field</label>
+                <input type="text" id="chart-y-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" placeholder="e.g., count">
+            `;
+        }
+    }
+});
+
+// Global cache instance
+window.apiCache = new APICache();
+
+// Cached fetch wrapper
+async function cachedFetch(url, options = {}, cacheOptions = {}) {
+    const {
+        ttl = window.apiCache.defaultTTL,
+        forceRefresh = false,
+        cacheKey = null
+    } = cacheOptions;
+
+    const key = cacheKey || window.apiCache.generateKey(url, options);
+    window.apiCache.stats.requests++;
+
+    // Check cache first unless force refresh
+    if (!forceRefresh) {
+        const cached = window.apiCache.get(key);
+        if (cached) {
+            window.apiCache.stats.hits++;
+            console.log(`Cache HIT for ${url}`, window.apiCache.getStats());
+            return {
+                ok: true,
+                json: () => Promise.resolve(cached),
+                status: 200,
+                fromCache: true
+            };
+        }
+    }
+
+    // Cache miss - make actual request
+    window.apiCache.stats.misses++;
+    console.log(`Cache MISS for ${url}`, window.apiCache.getStats());
+
+    try {
+        const response = await fetch(url, options);
+        
+        if (response.ok) {
+            const data = await response.json();
+            window.apiCache.set(key, data, ttl);
+            
+            return {
+                ok: true,
+                json: () => Promise.resolve(data),
+                status: response.status,
+                fromCache: false
+            };
+        } else {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+    } catch (error) {
+        console.error('Fetch error:', error);
+        throw error;
+    }
+}
 
 function showCalculationsPage() {
     document.getElementById("calculations-page").classList.remove("hidden");
@@ -2114,41 +2362,50 @@ async function saveCalculationFlow() {
 }
 
 async function executeCalculationFlow(save = false, name = "", description = "") {
-    const preview = document.getElementById("calc-flow-preview");
+    const previewDiv = document.getElementById("calc-flow-preview");
     let result = null;
     let error = null;
-    
+
     try {
         if (!window.currentCalcFlow || window.currentCalcFlow.length === 0) {
             throw new Error("No flow defined");
         }
-        
+
         let data = null;
         for (let i = 0; i < window.currentCalcFlow.length; i++) {
             const step = window.currentCalcFlow[i];
             
             if (step.type === "source") {
-                const response = await fetch(step.sourceUrl);
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
+                try {
+                    // Use cached fetch with 3 minute TTL for source data
+                    const response = await cachedFetch(step.sourceUrl, {}, { 
+                        ttl: 3 * 60 * 1000,
+                        cacheKey: `source:${step.sourceName}:${step.sourceUrl}`
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
+                    }
+                    data = await response.json();
+                } catch (fetchError) {
+                    throw new Error(`Failed to fetch source data: ${fetchError.message}`);
                 }
-                data = await response.json();
             } else {
                 data = await processCalculationStep(step, data);
             }
         }
         result = data;
-    } catch (e) {
-        error = e.message;
-        console.error("Error in executeCalculationFlow:", e);
+    } catch (err) {
+        error = err.message;
+        console.error("Error in executeCalculationFlow:", err);
     }
-    
+
     const borderClass = error ? "border-red-200 bg-red-50 dark:bg-red-900/20" : "border-green-200 bg-green-50 dark:bg-green-900/20";
     
-    preview.innerHTML = `
+    previewDiv.innerHTML = `
         <div class="p-4 border rounded ${borderClass}">
             <strong class="text-gray-900 dark:text-white">Calculation Steps:</strong><br>
-            ${window.currentCalcFlow.map((step, i) => `${i + 1}. ${step.label || step.type || step.sourceName}`).join("<br>")}
+            ${window.currentCalcFlow.map((step, index) => `${index + 1}. ${step.label || step.type || step.sourceName}`).join('<br>')}
             ${error ? 
                 `<div class="mt-4 text-red-600 dark:text-red-400"><strong>Error:</strong> ${error}</div>` :
                 `<div class="mt-4">
@@ -2158,25 +2415,25 @@ async function executeCalculationFlow(save = false, name = "", description = "")
             }
         </div>
     `;
-    
+
     if (!error && save) {
         dashboardState.calculations = dashboardState.calculations || {};
         const calcId = window.currentCalcId || "calc_" + Date.now();
         
-        // FIXED: Ensure we save the complete flow with all configurations
         dashboardState.calculations[calcId] = {
             name: name,
             description: description,
-            flow: JSON.parse(JSON.stringify(window.currentCalcFlow)), // Deep clone to preserve configs
+            flow: JSON.parse(JSON.stringify(window.currentCalcFlow)),
             result: result,
             lastModified: Date.now()
         };
         
         return true;
     }
-    
+
     return false;
 }
+
 
 // Enhanced calculation processing functions
 
@@ -2288,7 +2545,6 @@ function processGroupBy(step, data) {
 
 function processCount(step, data) {
     const config = step.config || {};
-    console.log(step)
     
     if (Array.isArray(data)) {
         return data.length;
@@ -2304,7 +2560,6 @@ function processCount(step, data) {
                     result[key] = value.length;
                 }
             });
-            console.log(result)
             return result;
         }
         
@@ -2559,63 +2814,70 @@ function processMap(step, data) {
     });
 }
 
-async function processJoin(step, data) {
+async function processJoin(step, inputData) {
     const config = step.config || {};
+    
     if (!config.joinField || config.joinSource === undefined) {
         throw new Error("Join step requires joinField and joinSource configuration");
     }
     
-    if (!Array.isArray(data)) {
+    if (!Array.isArray(inputData)) {
         throw new Error("Join step requires array input");
     }
-    
-    const joinSource = subroutes[config.joinSource];
-    if (!joinSource) {
+
+    const joinSubroute = subroutes[config.joinSource];
+    if (!joinSubroute) {
         throw new Error("Invalid join source");
     }
+
+    const joinUrl = dashboardSource[3] + joinSubroute[1];
     
-    const joinUrl = dashboardSource[3] + joinSource[1];
-    const response = await fetch(joinUrl);
-    if (!response.ok) {
-        throw new Error("Failed to fetch join data: " + response.status);
-    }
-    
-    const joinData = await response.json();
-    if (!Array.isArray(joinData)) {
-        throw new Error("Join data must be an array");
-    }
-    
-    const joinType = config.joinType || "inner";
-    const joinField = config.joinField;
-    const results = [];
-    
-    data.forEach(leftItem => {
-        const matches = joinData.filter(rightItem => 
-            leftItem[joinField] === rightItem[joinField]
-        );
+    try {
+        // Use cached fetch for join data
+        const response = await cachedFetch(joinUrl, {}, { 
+            ttl: 5 * 60 * 1000,
+            cacheKey: `join:${joinSubroute[1]}:${joinUrl}`
+        });
         
-        if (matches.length > 0) {
-            matches.forEach(match => {
-                results.push({ ...leftItem, ...match });
-            });
-        } else if (joinType === "left") {
-            results.push(leftItem);
+        if (!response.ok) {
+            throw new Error("Failed to fetch join data: " + response.status);
         }
-    });
-    
-    // Handle right join
-    if (joinType === "right") {
-        joinData.forEach(rightItem => {
-            const hasMatch = data.some(leftItem => 
-                leftItem[joinField] === rightItem[joinField]
-            );
-            if (!hasMatch) {
-                results.push(rightItem);
+        
+        const joinData = await response.json();
+        
+        if (!Array.isArray(joinData)) {
+            throw new Error("Join data must be an array");
+        }
+
+        const joinType = config.joinType || "inner";
+        const joinField = config.joinField;
+        const result = [];
+
+        inputData.forEach(leftItem => {
+            const matches = joinData.filter(rightItem => leftItem[joinField] === rightItem[joinField]);
+            
+            if (matches.length > 0) {
+                matches.forEach(match => {
+                    result.push({ ...leftItem, ...match });
+                });
+            } else if (joinType === "left") {
+                result.push(leftItem);
             }
         });
+
+        if (joinType === "right") {
+            joinData.forEach(rightItem => {
+                const hasMatch = inputData.some(leftItem => leftItem[joinField] === rightItem[joinField]);
+                if (!hasMatch) {
+                    result.push(rightItem);
+                }
+            });
+        }
+
+        return result;
+    } catch (error) {
+        throw new Error(`Join operation failed: ${error.message}`);
     }
-    
-    return results;
 }
 
 // Enhanced node configuration functions
@@ -2660,11 +2922,20 @@ async function getInputDataForStep(stepIndex) {
         const step = window.currentCalcFlow[i];
         
         if (step.type === "source") {
-            const response = await fetch(step.sourceUrl);
-            if (!response.ok) {
-                throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
+            try {
+                // Use cached fetch for input data
+                const response = await cachedFetch(step.sourceUrl, {}, { 
+                    ttl: 3 * 60 * 1000,
+                    cacheKey: `input:${step.sourceName}:${step.sourceUrl}`
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
+                }
+                data = await response.json();
+            } catch (error) {
+                throw new Error(`Failed to fetch source data: ${error.message}`);
             }
-            data = await response.json();
         } else {
             data = await processCalculationStep(step, data);
         }
