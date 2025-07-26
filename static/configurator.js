@@ -21,7 +21,7 @@ const CARD_TYPES = {
         span: "col-span-1",
         showHeader: true,
         hoverColor: "blue",
-        defaultSize: { cols: 1, rows: 1 },
+        defaultSize: { cols: 2, rows: 1 },
         content: {
             type: "placeholder",
             html: `
@@ -39,42 +39,27 @@ const CARD_TYPES = {
         span: "col-span-1",
         showHeader: true,
         hoverColor: "green",
-        defaultSize: { cols: 1, rows: 1 },
+        defaultSize: { cols: 2, rows: 1 },
         content: {
             type: "stats",
             stats: [
-                { value: "1,234", label: "Total Users", color: "blue" },
-                { value: "89%", label: "Success Rate", color: "green" }
+                { value: "0", label: "Loading...", color: "blue" },
+                { value: "0", label: "Loading...", color: "green" }
             ]
         }
     },
     table: {
-        title: "Data Table",
+        title: "Data Table", 
         description: "Show data in a structured table format",
         icon: "fa-table",
         span: "col-span-1",
         showHeader: true,
         hoverColor: "purple",
-        defaultSize: { cols: 2, rows: 1 },
+        defaultSize: { cols: 3, rows: 2 },
         content: {
             type: "table",
-            headers: ["Name", "Value"],
-            rows: [["Item 1", "100"], ["Item 2", "200"]]
-        }
-    },
-    notes: {
-        title: "Notes",
-        description: "Add text notes and reminders",
-        icon: "fa-sticky-note",
-        span: "col-span-1",
-        showHeader: true,
-        hoverColor: "yellow",
-        defaultSize: { cols: 1, rows: 1 },
-        content: {
-            type: "editable",
-            placeholder: "Click to add your notes...",
-            classes: "bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded p-3 text-sm text-gray-700 dark:text-gray-300 min-h-[100px] resize-none",
-            defaultText: "Sample note content..."
+            headers: ["Loading..."],
+            rows: [["No data available"]]
         }
     }
 };
@@ -115,20 +100,62 @@ let resizeState = {
 const grid = document.getElementById("card-grid");
 
 // Initialize dashboard
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", async function() {
     try {
-        loadDashboard();
-        loadPageState(dashboardState.currentPageId);
+        // Initialize data first
         initializeDashboardData();
+        
+        // Load dashboard state
+        await loadDashboard();
+        
+        // Load current page
+        const currentPageId = getCurrentPageId();
+        loadPageState(currentPageId);
+        
+        // Initialize UI components
         generateComponentLibrary();
         initializeDragAndDrop();
         initThemeToggle();
         initializePageNavigation();
-        initializeDataRefresh();
+        addDashboardControls();
+        
+        // Show instructions if needed
+        if (document.getElementById("card-grid").children.length === 0) {
+            toggleDragInstructions(true);
+        }
+        
     } catch (error) {
-        console.error("Error initializing dashboard:", error);
+        console.error("Dashboard initialization failed:", error);
+        showNotification("Error loading dashboard: " + error.message, "error");
     }
 });
+function initializeDashboard() {
+    try {
+        // Load existing dashboard state if available
+        loadDashboard();
+        
+        // Load current page state
+        loadPageState(getCurrentPageId());
+        
+        // If no cards exist, show drag instructions
+        if (document.getElementById('card-grid').children.length === 0) {
+            toggleDragInstructions(true);
+        }
+        
+    } catch (error) {
+        console.error('Error initializing dashboard:', error);
+        showNotification('Error loading dashboard', 'error');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize dashboard after other components are ready
+    setTimeout(initializeDashboard, 100);
+});
+
+function getCurrentPageId() {
+    return dashboardState.currentPageId
+}
 
 function initializeDashboardData() {
     const sourcesElement = document.getElementById("dashboard-sources");
@@ -224,23 +251,65 @@ function switchToPage(pageId) {
 }
 
 function saveCurrentPageState() {
-    const currentPage = dashboardState.pages.find(p => p.id === dashboardState.currentPageId);
-    if (currentPage) {
-        currentPage.cards = serializeCurrentCards();
+    // Ensure pages is always an array
+    if (!Array.isArray(dashboardState.pages)) {
+        dashboardState.pages = [{id: "home", name: "Home", cards: [], isActive: true}];
+    }
+    
+    const currentPageId = getCurrentPageId() || "home";
+    const cards = [];
+    
+    // Collect all cards
+    document.querySelectorAll(".resizable-card").forEach((cardElement, index) => {
+        const cardData = {
+            id: cardElement.dataset.cardId || `card-${index}`,
+            type: cardElement.dataset.cardType,
+            cols: parseInt(cardElement.dataset.cols) || 1,
+            rows: parseInt(cardElement.dataset.rows) || 1,
+            config: extractCardConfig(cardElement),
+            position: index
+        };
+        cards.push(cardData);
+    });
+    
+    // Find and update the current page in the array
+    const pageIndex = dashboardState.pages.findIndex(page => page.id === currentPageId);
+    if (pageIndex !== -1) {
+        dashboardState.pages[pageIndex].cards = cards;
+        dashboardState.pages[pageIndex].lastModified = Date.now();
+    } else {
+        // Create new page if not found
+        dashboardState.pages.push({
+            id: currentPageId,
+            name: currentPageId === "home" ? "Home" : currentPageId,
+            cards: cards,
+            isActive: true,
+            lastModified: Date.now()
+        });
     }
 }
 
-function loadPageState(pageId) {
+function loadPageState(pageId) {    
     const page = dashboardState.pages.find(p => p.id === pageId);
-    if (page) {
-        clearGrid();
-        page.cards.forEach(cardData => {
-            deserializeCard(cardData);
-        });
-        
-        // Show/hide drag instructions based on card count
-        toggleDragInstructions(page.cards.length === 0);
+    
+    if (!page) {
+        console.warn("Page not found:", pageId);
+        return;
     }
+    
+    clearGrid();
+    
+    if (page.cards && page.cards.length > 0) {
+        page.cards.forEach((cardConfig, index) => {
+            try {
+                deserializeCard(cardConfig);
+            } catch (error) {
+                console.error(`Error deserializing card ${index}:`, error);
+            }
+        });
+    }
+    
+    toggleDragInstructions(page.cards?.length === 0);
 }
 
 function serializeCurrentCards() {
@@ -258,44 +327,167 @@ function serializeCurrentCards() {
     return cards;
 }
 
-function deserializeCard(cardData) {
-    const cardElement = createCard(cardData.type);
-    cardElement.dataset.cardId = cardData.id;
-    cardElement.dataset.cols = cardData.cols;
-    cardElement.dataset.rows = cardData.rows;
-    updateCardGridSpan(cardElement, cardData.cols, cardData.rows);
+function deserializeCard(cardConfig) {
+    if (!cardConfig.type || !CARD_TYPES[cardConfig.type]) {
+        console.error("Invalid card type:", cardConfig.type);
+        return;
+    }
     
-    // Apply saved configuration
-    if (cardData.config) {
-        applyCardConfig(cardElement, cardData.config);
+    try {
+        const card = createCard(cardConfig.type);
+        
+        if (cardConfig.id) card.dataset.cardId = cardConfig.id;
+        if (cardConfig.cols) card.dataset.cols = cardConfig.cols;
+        if (cardConfig.rows) card.dataset.rows = cardConfig.rows;
+        
+        updateCardGridSpan(card, cardConfig.cols || 1, cardConfig.rows || 1);
+        
+        if (cardConfig.config) {
+            applyCardConfig(card, cardConfig.config);
+        }
+        
+        return card;
+    } catch (error) {
+        console.error("Error creating card:", error);
+        throw error;
     }
 }
 
 function extractCardConfig(cardElement) {
     const cardType = cardElement.dataset.cardType;
-    const config = {};
-    
-    if (cardType === 'text' || cardType === 'notes') {
+    const config = {
+        cardType: cardType,
+        cols: parseInt(cardElement.dataset.cols) || 1,
+        rows: parseInt(cardElement.dataset.rows) || 1
+    };
+
+    if (cardType === 'stats') {
+        // Extract stats configuration
+        const statsConfig = cardElement.dataset.statsConfig;
+        if (statsConfig) {
+            try {
+                config.statsConfig = JSON.parse(statsConfig);
+            } catch (e) {
+                console.warn('Failed to parse stats config:', e);
+            }
+        }
+        
+        // Also store the current display data for reference
+        const statsElements = cardElement.querySelectorAll('.text-2xl.font-bold');
+        if (statsElements.length >= 2) {
+            config.currentStats = {
+                leftValue: statsElements[0].textContent,
+                rightValue: statsElements[1].textContent,
+                leftLabel: cardElement.querySelector('.text-xs')?.textContent || '',
+                rightLabel: cardElement.querySelectorAll('.text-xs')[1]?.textContent || ''
+            };
+        }
+    } 
+    else if (cardType === 'chart') {
+        // Extract chart configuration
+        const chartConfig = cardElement.dataset.chartConfig;
+        if (chartConfig) {
+            try {
+                config.chartConfig = JSON.parse(chartConfig);
+            } catch (e) {
+                console.warn('Failed to parse chart config:', e);
+            }
+        }
+        
+        // Find canvas element and extract chart info
+        const canvas = cardElement.querySelector('canvas');
+        if (canvas && window.chartInstances && window.chartInstances[cardElement.dataset.cardId]) {
+            const chartInstance = window.chartInstances[cardElement.dataset.cardId];
+            config.chartData = {
+                type: chartInstance.config.type,
+                labels: chartInstance.data.labels,
+                datasets: chartInstance.data.datasets,
+                title: chartInstance.options?.plugins?.title?.text || ''
+            };
+        }
+    }
+    else if (cardType === 'table') {
+        // Extract table configuration
+        const tableConfig = cardElement.dataset.tableConfig;
+        if (tableConfig) {
+            try {
+                config.tableConfig = JSON.parse(tableConfig);
+            } catch (e) {
+                console.warn('Failed to parse table config:', e);
+            }
+        }
+        
+        // Extract current table structure
+        const table = cardElement.querySelector('table');
+        if (table) {
+            const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent);
+            const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr => 
+                Array.from(tr.querySelectorAll('td')).map(td => td.textContent)
+            );
+            config.tableData = { headers, rows };
+        }
+    }
+    else if (cardType === 'text' || cardType === 'notes') {
+        // Extract text content
         const editableElement = cardElement.querySelector('[contenteditable]');
         if (editableElement) {
             config.text = editableElement.textContent;
         }
     }
-    // Add more config extraction for other card types
-    
+
     return config;
 }
 
+
 function applyCardConfig(cardElement, config) {
     const cardType = cardElement.dataset.cardType;
-    
+
+    // Apply basic sizing
+    if (config.cols) {
+        cardElement.dataset.cols = config.cols;
+        updateCardGridSpan(cardElement, config.cols, config.rows || 1);
+    }
+
     if (cardType === 'text' || cardType === 'notes') {
+        // Restore text content
         const editableElement = cardElement.querySelector('[contenteditable]');
         if (editableElement && config.text) {
             editableElement.textContent = config.text;
         }
     }
-    // Add more config application for other card types
+    else if (cardType === 'stats') {
+        // Store configuration data in dataset for later use
+        if (config.statsConfig) {
+            cardElement.dataset.statsConfig = JSON.stringify(config.statsConfig);
+            
+            // Restore the stats display if we have the configuration
+            if (config.statsConfig.configured) {
+                restoreStatsCard(cardElement, config);
+            }
+        }
+    }
+    else if (cardType === 'chart') {
+        // Store configuration data in dataset for later use
+        if (config.chartConfig) {
+            cardElement.dataset.chartConfig = JSON.stringify(config.chartConfig);
+            
+            // Restore the chart if we have the configuration
+            if (config.chartConfig.configured) {
+                restoreChartCard(cardElement, config);
+            }
+        }
+    }
+    else if (cardType === 'table') {
+        // Store configuration data in dataset for later use
+        if (config.tableConfig) {
+            cardElement.dataset.tableConfig = JSON.stringify(config.tableConfig);
+            
+            // Restore the table if we have the configuration
+            if (config.tableConfig.configured) {
+                restoreTableCard(cardElement, config);
+            }
+        }
+    }
 }
 
 // Data Refresh and Auto-update
@@ -335,164 +527,118 @@ async function refreshCardData(cardElement) {
     }
 }
 
-// Custom Calculations Engine
-function createCalculatedField(formula, dataSources) {
-    return {
-        formula: formula,
-        dataSources: dataSources,
-        calculate: async function() {
-            try {
-                // Fetch all required data sources
-                const dataMap = {};
-                for (const source of this.dataSources) {
-                    const response = await fetch(source.url);
-                    const data = await response.json();
-                    dataMap[source.name] = data;
-                }
-                
-                // Execute formula with data context
-                const result = evaluateFormula(this.formula, dataMap);
-                return result;
-            } catch (error) {
-                console.error("Calculation error:", error);
-                return "Error";
-            }
-        }
-    };
-}
-
-function evaluateFormula(formula, dataMap) {
-    // Simple formula evaluator - can be extended with more complex operations
-    // Supports basic math operations and data references like SUM(dataSource.field)
-    
-    let processedFormula = formula;
-    
-    // Replace data references
-    Object.keys(dataMap).forEach(sourceName => {
-        const sourceData = dataMap[sourceName];
-        
-        // Handle SUM function
-        const sumRegex = new RegExp(`SUM\\(${sourceName}\\.([\\w]+)\\)`, 'g');
-        processedFormula = processedFormula.replace(sumRegex, (match, field) => {
-            if (Array.isArray(sourceData)) {
-                const sum = sourceData.reduce((acc, item) => {
-                    const value = parseFloat(item[field]) || 0;
-                    return acc + value;
-                }, 0);
-                return sum.toString();
-            }
-            return "0";
-        });
-        
-        // Handle AVG function
-        const avgRegex = new RegExp(`AVG\\(${sourceName}\\.([\\w]+)\\)`, 'g');
-        processedFormula = processedFormula.replace(avgRegex, (match, field) => {
-            if (Array.isArray(sourceData) && sourceData.length > 0) {
-                const sum = sourceData.reduce((acc, item) => {
-                    const value = parseFloat(item[field]) || 0;
-                    return acc + value;
-                }, 0);
-                return (sum / sourceData.length).toString();
-            }
-            return "0";
-        });
-        
-        // Handle COUNT function
-        const countRegex = new RegExp(`COUNT\\(${sourceName}\\)`, 'g');
-        processedFormula = processedFormula.replace(countRegex, () => {
-            return Array.isArray(sourceData) ? sourceData.length.toString() : "0";
-        });
-        
-        // Handle direct field access
-        const fieldRegex = new RegExp(`${sourceName}\\.([\\w]+)`, 'g');
-        processedFormula = processedFormula.replace(fieldRegex, (match, field) => {
-            if (Array.isArray(sourceData) && sourceData.length > 0) {
-                return sourceData[0][field] || "0";
-            } else if (sourceData && typeof sourceData === 'object') {
-                return sourceData[field] || "0";
-            }
-            return "0";
-        });
-    });
-    
-    // Evaluate the mathematical expression safely
+async function saveDashboard(dashboardId) {
     try {
-        // Simple eval alternative for basic math operations
-        const result = Function(`"use strict"; return (${processedFormula})`)();
-        return isNaN(result) ? "Invalid" : result;
-    } catch (error) {
-        return "Error";
-    }
-}
-
-async function recalculateField(cardElement) {
-    const formula = cardElement.dataset.formula;
-    const dataSource = cardElement.dataset.dataSource;
-    
-    if (!formula || !dataSource) return;
-    
-    const calculation = createCalculatedField(formula, [{ name: 'data', url: dataSource }]);
-    const result = await calculation.calculate();
-    
-    const resultElement = cardElement.querySelector('.calculation-result');
-    if (resultElement) {
-        resultElement.textContent = result;
-    }
-}
-
-// Database Saving Functions
-async function saveDashboard(dashboardID) {
-    try {
-        // Save current state before sending
+        // Save current page state first
         saveCurrentPageState();
-
-        // Serialize dashboard state to JSON
-        const jsonDash = JSON.stringify(dashboardState, null, 2);
-        const blob = new Blob([jsonDash], { type: 'application/json' });
-
-        // Send POST request
-        const response = await fetch(`/api/dashboards/save/${dashboardID}`, {
+        
+        // Add metadata
+        dashboardState.lastModified = Date.now();
+        dashboardState.version = dashboardState.version ? dashboardState.version + 1 : 1;
+        
+        const dashboardData = JSON.stringify(dashboardState, null, 2);
+        const blob = new Blob([dashboardData], { type: 'application/json' });
+        
+        const response = await fetch(`/api/dashboards/save/${dashboardId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: blob
         });
-
-        // Check if the response was redirected
+        
         if (response.redirected) {
-            // Use the final URL in the response
             location.href = response.url;
-        } else if (response.ok) {
-            // If the request succeeded, parse JSON and redirect
+        } else if (!response.ok) {
+            throw new Error(`Request failed with status: ${response.status}`);
+        } else {
             const result = await response.json();
             dashboardState.id = result.id;
-            showNotification("Dashboard saved successfully!", "success");
-            location.href = '/home';
-        } else {
-            // If the response is not a redirect and not successful, show an error
-            throw new Error(`Request failed with status: ${response.status}`);
+            
+            showNotification('Dashboard saved successfully!', 'success');
+            updateBrowserUrl();
+            
+            // Optional: redirect to home or stay on current page
+            // location.href = '/home';
         }
     } catch (error) {
-        console.error("Error saving dashboard:", error);
-        showNotification("Error saving dashboard", "error");
+        console.error('Error saving dashboard:', error);
+        showNotification(`Error saving dashboard: ${error.message}`, 'error');
     }
 }
 
-async function loadDashboard() {
+let autoSaveTimeout;
+function scheduleAutoSave() {
+    if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
+    
+    autoSaveTimeout = setTimeout(() => {
+        try {
+            saveCurrentPageState();
+        } catch (error) {
+            console.error("Auto-save failed:", error);
+        }
+    }, 2000);
+}
+
+document.addEventListener("DOMContentLoaded", (function() {
+    const observer = new MutationObserver((mutations) => {
+        let shouldSave = false;
+        
+        mutations.forEach((mutation) => {
+            if (mutation.type === "childList") {
+                // Cards added or removed
+                shouldSave = true;
+            } else if (mutation.type === "attributes") {
+                // Card properties changed
+                if (["data-cols", "data-rows", "data-card-id", "data-card-type"].includes(mutation.attributeName)) {
+                    shouldSave = true;
+                }
+            }
+        });
+        
+        if (shouldSave) {
+            scheduleAutoSave(); // Now actually saves
+        }
+    });
+    
+    const cardGrid = document.getElementById("card-grid");
+    if (cardGrid) {
+        observer.observe(cardGrid, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ["data-cols", "data-rows", "data-card-id", "data-card-type"]
+        });
+    }
+}));
+
+function loadDashboard() {
     try {
         if (dashboardInfo[7]) {
-            dashboardState = JSON.parse(dashboardInfo[7])
+            const loadedState = JSON.parse(dashboardInfo[7]);
+            
+            // Ensure pages is always an array
+            if (loadedState.pages && !Array.isArray(loadedState.pages)) {
+                // Convert object format to array format
+                loadedState.pages = Object.values(loadedState.pages).map(page => ({
+                    id: page.id || 'home',
+                    name: page.name || 'Home',
+                    cards: page.cards || [],
+                    isActive: page.isActive || false
+                }));
+            }
+            
+            dashboardState = {
+                ...dashboardState,
+                ...loadedState
+            };
+            
         }
-    } catch (error) {
-        console.error("Error loading dashboard:", error);
-        showNotification("Error loading dashboard", "error");
+    } catch (e) {
+        console.error("Error parsing dashboard data:", e);
+        throw e;
     }
 }
-
-// window.onload = function() {
-//     loadDashboard()
-// }
 
 function updateBrowserUrl() {
     if (dashboardState.id) {
@@ -599,11 +745,6 @@ function addDashboardControls() {
     }
 }
 
-// Initialize dashboard controls
-document.addEventListener("DOMContentLoaded", function() {
-    addDashboardControls();
-});
-
 document.addEventListener('DOMContentLoaded', () => {
 generateComponentLibrary();
 initializeDragAndDrop();
@@ -667,23 +808,132 @@ resizeState.isResizing = false;
 }
 
 // Create a new card (horizontal resizing only)
-function createCard(type) {
-const config = CARD_TYPES[type];
-if (!config) return;
-const cols = config.defaultSize.cols;
-const card = document.createElement('div');
-card.className = 'resizable-card relative group';
-card.dataset.cardType = type;
-card.dataset.cols = cols;
-card.style.gridColumnEnd = `span ${cols}`;
+function createCard(componentType) {
+    const cardType = CARD_TYPES[componentType];
+    if (!cardType) {
+        console.error(`Unknown card type: ${componentType}`);
+        return;
+    }
 
-// Add content (not shown) and horizontal resize handle
-const handles = createResizeHandles();
-card.appendChild(handles);
-initializeCardResize(card);
-grid.appendChild(card);
+    cardCounter++;
+    const cardGrid = document.getElementById('card-grid');
+    const cardElement = document.createElement('div');
+    const defaultSize = cardType.defaultSize || { cols: 1, rows: 1 };
+
+    cardElement.className = 'resizable-card bg-white dark:bg-gray-800 dark:text-white rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-shadow duration-200 relative group min-h-fit';
+    cardElement.dataset.cardType = componentType;
+    cardElement.dataset.cardId = `card-${cardCounter}`;
+    cardElement.dataset.cols = defaultSize.cols;
+    cardElement.dataset.rows = defaultSize.rows;
+    
+    updateCardGridSpan(cardElement, defaultSize.cols, defaultSize.rows);
+
+    let cardHTML = '';
+    const resizeHandles = createResizeHandles();
+
+    if (cardType.showHeader) {
+        cardHTML += `
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">${cardType.title}</h3>
+                <div class="flex items-center space-x-2">
+                    <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" onclick="editCard(this)">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="text-gray-400 hover:text-red-600" onclick="deleteCard(this)">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="text-sm text-gray-600 dark:text-gray-400 mb-4">${cardType.description}</div>
+        `;
+    } else {
+        cardHTML += `
+            <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                <div class="flex items-center space-x-1">
+                    <button class="text-gray-400 hover:text-red-600 text-sm p-1" onclick="deleteCard(this)">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    cardHTML += `<div class="card-content">${renderCardContent(cardType.content)}</div>`;
+    cardElement.innerHTML = cardHTML;
+    cardElement.appendChild(resizeHandles);
+    cardGrid.appendChild(cardElement);
+    initializeCardResize(cardElement);
+
+    // Auto-show customization modal for data-driven cards
+    if (['stats', 'chart', 'table'].includes(componentType)) {
+        setTimeout(() => {
+            showCustomizationModal(componentType, cardElement);
+        }, 100);
+    }
+
+    setTimeout(() => {
+        saveCurrentPageState();
+    }, 100);
+
+    return cardElement;
 }
 
+function createCardFromConfig(cardConfig) {
+    const cardType = CARD_TYPES[cardConfig.type];
+    if (!cardType) {
+        console.error(`Unknown card type: ${cardConfig.type}`);
+        return null;
+    }
+    
+    const cardGrid = document.getElementById('card-grid');
+    const cardElement = document.createElement('div');
+    
+    cardElement.className = 'resizable-card bg-white dark:bg-gray-800 dark:text-white rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-shadow duration-200 relative group min-h-fit';
+    cardElement.dataset.cardType = cardConfig.type;
+    cardElement.dataset.cardId = cardConfig.id;
+    cardElement.dataset.cols = cardConfig.cols;
+    cardElement.dataset.rows = cardConfig.rows;
+    
+    updateCardGridSpan(cardElement, cardConfig.cols, cardConfig.rows);
+    
+    let cardHTML = '';
+    const resizeHandles = createResizeHandles();
+    
+    if (cardType.showHeader) {
+        cardHTML += `
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">${cardType.title}</h3>
+                <div class="flex items-center space-x-2">
+                    <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" onclick="editCard(this)">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="text-gray-400 hover:text-red-600" onclick="deleteCard(this)">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="text-sm text-gray-600 dark:text-gray-400 mb-4">${cardType.description}</div>
+        `;
+    } else {
+        cardHTML += `
+            <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                <div class="flex items-center space-x-1">
+                    <button class="text-gray-400 hover:text-red-600 text-sm p-1" onclick="deleteCard(this)">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+    
+    cardHTML += `<div class="card-content">${renderCardContent(cardType.content)}</div>`;
+    cardElement.innerHTML = cardHTML;
+    cardElement.appendChild(resizeHandles);
+    cardGrid.appendChild(cardElement);
+    initializeCardResize(cardElement);
+    
+    return cardElement;
+}
 
 // Content renderers for different card types
 const CONTENT_RENDERERS = {
@@ -788,7 +1038,7 @@ function handleDrop(e) {
         const newCard = createCard(componentType);
         
         // Show customization modal for stats and chart cards
-        if (componentType === 'stats' || componentType === 'chart') {
+        if (componentType === 'stats' || componentType === 'chart' || componentType === 'table') {
             setTimeout(() => {
                 showCustomizationModal(componentType, newCard);
             }, 100);
@@ -1008,20 +1258,22 @@ function handleEditableKeydown(event) {
     }
 }
 
-function editCard(button) {
-    const card = button.closest('[data-card-type]');
-    const cardType = card.dataset.cardType;
+function editCard(buttonElement) {
+    const cardElement = buttonElement.closest('[data-card-type]');
+    const cardType = cardElement.dataset.cardType;
     
-    if (cardType === 'stats' || cardType === 'chart') {
-        showCustomizationModal(cardType, card);
+    if (['stats', 'chart', 'table'].includes(cardType)) {
+        showCustomizationModal(cardType, cardElement);
     } else {
-        const config = CARD_TYPES[cardType];
-        if (!config) return;
+        // Handle other card types (like text cards)
+        if (!CARD_TYPES[cardType]) return;
         
-        const title = card.querySelector('h3').textContent;
-        const newTitle = prompt('Enter new title:', title);
-        if (newTitle) {
-            card.querySelector('h3').textContent = newTitle;
+        const titleElement = cardElement.querySelector('h3');
+        const currentTitle = titleElement.textContent;
+        const newTitle = prompt('Enter new title:', currentTitle);
+        
+        if (newTitle && newTitle !== currentTitle) {
+            titleElement.textContent = newTitle;
         }
     }
 }
@@ -1042,6 +1294,8 @@ function deleteCard(button) {
         `;
         dropZone.insertAdjacentHTML('afterbegin', instructionsHtml);
     }
+
+    saveCurrentPageState();
 }
 
 // Utility function to easily add new card types
@@ -1207,22 +1461,47 @@ document.addEventListener('DOMContentLoaded', function() {
     initThemeToggle();
 });
 
-function showCustomizationModal(cardType, card) {
-    currentCustomizingCard = card;
+function showCustomizationModal(cardType, cardElement) {
+    currentCustomizingCard = cardElement;
     const modal = document.getElementById('customization-modal');
-    const modalTitle = document.getElementById('modal-title');
-    const modalContent = document.getElementById('modal-content');
+    const title = document.getElementById('modal-title');
+    const content = document.getElementById('modal-content');
     
-    modalTitle.textContent = `Setup ${CARD_TYPES[cardType].title}`;
+    title.textContent = `Setup ${CARD_TYPES[cardType].title}`;
     
+    let modalContent = '';
     if (cardType === 'stats') {
-        modalContent.innerHTML = generateStatsModalContent();
+        modalContent = generateStatsModalContent();
     } else if (cardType === 'chart') {
-        modalContent.innerHTML = generateChartModalContent();
+        modalContent = generateChartModalContent();
+    } else if (cardType === 'table') {
+        modalContent = generateTableModalContent();
     }
     
+    content.innerHTML = modalContent;
     modal.classList.remove('hidden');
 }
+
+function updateModalFooter() {
+    const modal = document.getElementById('customization-modal');
+    const content = document.getElementById('modal-content');
+    
+    // Add footer to modal content if it doesn't exist
+    if (!content.querySelector('.modal-footer')) {
+        const footer = document.createElement('div');
+        footer.className = 'modal-footer mt-6 flex justify-end gap-2 pt-4 border-t border-gray-200 dark:border-gray-600';
+        footer.innerHTML = `
+            <button class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors" onclick="closeCustomizationModal()">
+                Cancel
+            </button>
+            <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors" onclick="applyCustomization()">
+                <i class="fas fa-check mr-1"></i>Apply
+            </button>
+        `;
+        content.appendChild(footer);
+    }
+}
+
 
 function closeCustomizationModal() {
     const modal = document.getElementById('customization-modal');
@@ -1268,105 +1547,253 @@ function generateStatsModalContent() {
             </div>
         </div>
     `;
+}function generateStatsModalContent() {
+    const availableCalculations = Object.entries(dashboardState.calculations || {})
+        .map(([id, calc]) => `<option value="${id}">${calc.name}</option>`)
+        .join('');
+    
+    const subrouteOptions = subroutes.map(route => 
+        `<option value="${route[1]}">${route[1]}</option>`
+    ).join('');
+
+    return `
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Data Source</label>
+                <div class="flex space-x-2">
+                    <label class="flex items-center">
+                        <input type="radio" name="stats-source-type" value="calculation" class="mr-2" onchange="toggleStatsSourceType()">
+                        <span>Use Calculation</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="radio" name="stats-source-type" value="manual" class="mr-2" checked onchange="toggleStatsSourceType()">
+                        <span>Manual Setup</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div id="stats-calculation-section" style="display: none;">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Calculation</label>
+                <select id="stats-calculation" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
+                    <option value="">Choose a calculation...</option>
+                    ${availableCalculations}
+                </select>
+            </div>
+            
+            <div id="stats-manual-section">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Primary Data Source</label>
+                    <select id="stats-subroute-left" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
+                        <option value="">Select endpoint...</option>
+                        ${subrouteOptions}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Primary Metric</label>
+                    <select id="stats-left-type" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
+                        <option value="count">Count of items</option>
+                        <option value="field">Specific field value</option>
+                    </select>
+                    <input type="text" id="stats-left-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white mt-2" placeholder="Field name (if specific field)" style="display: none;">
+                    <input type="text" id="stats-left-label" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white mt-2" placeholder="Display label">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Secondary Data Source</label>
+                    <select id="stats-subroute-right" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
+                        <option value="">Select endpoint...</option>
+                        ${subrouteOptions}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Secondary Metric</label>
+                    <select id="stats-right-type" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
+                        <option value="count">Count of items</option>
+                        <option value="field">Specific field value</option>
+                    </select>
+                    <input type="text" id="stats-right-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white mt-2" placeholder="Field name (if specific field)" style="display: none;">
+                    <input type="text" id="stats-right-label" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white mt-2" placeholder="Display label">
+                </div>
+            </div>
+        </div>
+    `;
 }
+
 
 function generateChartModalContent() {
-    const calcOptions = Object.values(dashboardState.calculations || {}).map(c =>
-        `<option value="${c.id}">${c.name}</option>`
+    const availableCalculations = Object.entries(dashboardState.calculations || {})
+        .map(([id, calc]) => `<option value="${id}">${calc.name}</option>`)
+        .join('');
+    
+    const subrouteOptions = subroutes.map(route => 
+        `<option value="${route[1]}">${route[1]}</option>`
     ).join('');
-    const manualFields = 
-        '<div id="chart-manual-fields">' +
-            '<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Data Source</label>' +
-            '<select id="chart-source" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">' +
-                '<option value="">Select a source...</option>' +
-                `<option value="${dashboardSource[3]}">${dashboardSource[2]}</option>` +
-            '</select>' +
-            '<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 mt-2">Endpoint</label>' +
-            '<select id="chart-subroute" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white subroute-selector">' +
-                '<option value="">Select an endpoint...</option>' +
-                subroutes.map(s => `<option value="${s[1]}">${s[1]}</option>`).join('') +
-            '</select>' +
-        '</div>';
-    const axisFields = 
-        '<div id="chart-axis-fields">' +
-            '<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">X-Axis Field</label>' +
-            '<input type="text" id="chart-x-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" placeholder="e.g., name">' +
-            '<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 mt-2">Y-Axis Field</label>' +
-            '<input type="text" id="chart-y-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" placeholder="e.g., count">' +
-        '</div>';
-    // Return the modal HTML
-    return (
-        '<div class="space-y-4">' +
-            '<div>' +
-                '<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Calculation</label>' +
-                '<select id="chart-calculation" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">' +
-                    '<option value="">None (manual)</option>' +
-                    calcOptions +
-                '</select>' +
-            '</div>' +
-            manualFields +
-            '<div>' +
-                '<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Chart Type</label>' +
-                '<select id="chart-type" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">' +
-                    '<option value="line">Line Chart</option>' +
-                    '<option value="bar">Bar Chart</option>' +
-                    '<option value="pie">Pie Chart</option>' +
-                '</select>' +
-            '</div>' +
-            axisFields +
-        '</div>'
-    );
+
+    return `
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Data Source</label>
+                <div class="flex space-x-2">
+                    <label class="flex items-center">
+                        <input type="radio" name="chart-source-type" value="calculation" class="mr-2" onchange="toggleChartSourceType()">
+                        <span>Use Calculation</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="radio" name="chart-source-type" value="manual" class="mr-2" checked onchange="toggleChartSourceType()">
+                        <span>Manual Setup</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div id="chart-calculation-section" style="display: none;">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Calculation</label>
+                <select id="chart-calculation" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
+                    <option value="">Choose a calculation...</option>
+                    ${availableCalculations}
+                </select>
+            </div>
+            
+            <div id="chart-manual-section">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Data Endpoint</label>
+                    <select id="chart-subroute" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
+                        <option value="">Select endpoint...</option>
+                        ${subrouteOptions}
+                    </select>
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Chart Type</label>
+                <select id="chart-type" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
+                    <option value="line">Line Chart</option>
+                    <option value="bar">Bar Chart</option>
+                    <option value="pie">Pie Chart</option>
+                    <option value="doughnut">Doughnut Chart</option>
+                </select>
+            </div>
+            
+            <div id="chart-axis-fields">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">X-Axis Field</label>
+                    <input type="text" id="chart-x-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" placeholder="e.g., name, category">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Y-Axis Field</label>
+                    <input type="text" id="chart-y-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" placeholder="e.g., count, value">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Chart Title</label>
+                    <input type="text" id="chart-title" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" placeholder="Enter chart title">
+                </div>
+            </div>
+        </div>
+    `;
 }
 
-// Attach calculation dropdown logic after modal is rendered
-document.addEventListener('change', async function(e) {
-    if (e.target && e.target.id === 'chart-calculation') {
-        const calcId = e.target.value;
-        const manualFields = document.getElementById('chart-manual-fields');
-        const axisFields = document.getElementById('chart-axis-fields');
-        if (calcId) {
-            manualFields.style.display = 'none';
-            const calc = dashboardState.calculations[calcId];
-            if (!calc) return;
-            const sourceUrl = dashboardSource[3];
-            try {
-                const usersRes = await fetch(sourceUrl + calc.subroute1);
-                const postsRes = await fetch(sourceUrl + calc.subroute2);
-                const users = await usersRes.json();
-                const posts = await postsRes.json();
-                let calcData = [];
-                try {
-                    calcData = Function('users', 'posts', 'return ' + calc.logic)(users, posts);
-                } catch (e) {
-                    calcData = [];
-                }
-                console.log('Calculation data:', calcData);
-                var keys = [];
-                if (Array.isArray(calcData) && calcData.length > 0 && typeof calcData[0] === 'object') {
-                    keys = Object.keys(calcData[0]);
-                }
-                axisFields.innerHTML =
-                    '<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">X-Axis Field</label>' +
-                    '<select id="chart-x-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">' +
-                        keys.map(k => `<option value="${k}">${k}</option>`).join('') +
-                    '</select>' +
-                    '<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 mt-2">Y-Axis Field</label>' +
-                    '<select id="chart-y-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">' +
-                        keys.map(k => `<option value="${k}">${k}</option>`).join('') +
-                    '</select>';
-            } catch (err) {
-                axisFields.innerHTML = '<div class="text-red-600">Failed to load calculation data</div>';
-            }
-        } else {
-            manualFields.style.display = 'block';
-            axisFields.innerHTML =
-                '<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">X-Axis Field</label>' +
-                '<input type="text" id="chart-x-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" placeholder="e.g., name">' +
-                '<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 mt-2">Y-Axis Field</label>' +
-                '<input type="text" id="chart-y-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" placeholder="e.g., count">';
-        }
+function generateTableModalContent() {
+    const availableCalculations = Object.entries(dashboardState.calculations || {})
+        .map(([id, calc]) => `<option value="${id}">${calc.name}</option>`)
+        .join('');
+    
+    const subrouteOptions = subroutes.map(route => 
+        `<option value="${route[1]}">${route[1]}</option>`
+    ).join('');
+
+    return `
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Data Source</label>
+                <div class="flex space-x-2">
+                    <label class="flex items-center">
+                        <input type="radio" name="table-source-type" value="calculation" class="mr-2" onchange="toggleTableSourceType()">
+                        <span>Use Calculation</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="radio" name="table-source-type" value="manual" class="mr-2" checked onchange="toggleTableSourceType()">
+                        <span>Manual Setup</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div id="table-calculation-section" style="display: none;">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Calculation</label>
+                <select id="table-calculation" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
+                    <option value="">Choose a calculation...</option>
+                    ${availableCalculations}
+                </select>
+            </div>
+            
+            <div id="table-manual-section">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Data Endpoint</label>
+                    <select id="table-subroute" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
+                        <option value="">Select endpoint...</option>
+                        ${subrouteOptions}
+                    </select>
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Display Options</label>
+                <div class="space-y-2">
+                    <div>
+                        <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Max Rows to Display</label>
+                        <input type="number" id="table-max-rows" value="10" min="1" max="100" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="table-show-pagination" class="mr-2">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Enable pagination</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function toggleStatsSourceType() {
+    const sourceType = document.querySelector('input[name="stats-source-type"]:checked').value;
+    const calculationSection = document.getElementById('stats-calculation-section');
+    const manualSection = document.getElementById('stats-manual-section');
+    
+    if (sourceType === 'calculation') {
+        calculationSection.style.display = 'block';
+        manualSection.style.display = 'none';
+    } else {
+        calculationSection.style.display = 'none';
+        manualSection.style.display = 'block';
     }
-});
+}
+
+function toggleChartSourceType() {
+    const sourceType = document.querySelector('input[name="chart-source-type"]:checked').value;
+    const calculationSection = document.getElementById('chart-calculation-section');
+    const manualSection = document.getElementById('chart-manual-section');
+    
+    if (sourceType === 'calculation') {
+        calculationSection.style.display = 'block';
+        manualSection.style.display = 'none';
+    } else {
+        calculationSection.style.display = 'none';
+        manualSection.style.display = 'block';
+    }
+}
+
+function toggleTableSourceType() {
+    const sourceType = document.querySelector('input[name="table-source-type"]:checked').value;
+    const calculationSection = document.getElementById('table-calculation-section');
+    const manualSection = document.getElementById('table-manual-section');
+    
+    if (sourceType === 'calculation') {
+        calculationSection.style.display = 'block';
+        manualSection.style.display = 'none';
+    } else {
+        calculationSection.style.display = 'none';
+        manualSection.style.display = 'block';
+    }
+}
 
 function updateSubrouteOptions(widgetType) {
     const sourceSelect = document.getElementById(`${widgetType}-source`);
@@ -1402,115 +1829,599 @@ async function applyCustomization() {
     
     const cardType = currentCustomizingCard.dataset.cardType;
     
-    if (cardType === 'stats') {
-        await applyStatsCustomization();
-    } else if (cardType === 'chart') {
-        await applyChartCustomization();
+    try {
+        if (cardType === 'stats') {
+            await applyStatsCustomization();
+        } else if (cardType === 'chart') {
+            await applyChartCustomization();
+        } else if (cardType === 'table') {
+            await applyTableCustomization();
+        }
+        closeCustomizationModal();
+    } catch (error) {
+        console.error('Error applying customization:', error);
+        alert('Error applying customization: ' + error.message);
     }
-    
-    closeCustomizationModal();
 }
 
 async function applyStatsCustomization() {
-    if (!currentCustomizingCard) return;
-
-    const source = document.getElementById("stats-source").value;
-    const leftSubroute = document.getElementById("stats-subroute-left").value;
-    const rightSubroute = document.getElementById("stats-subroute-right").value;
-    const leftField = document.getElementById("stats-left-field").value;
-    const rightField = document.getElementById("stats-right-field").value;
-
-    if (!source || !leftSubroute || !rightSubroute) {
-        return alert("Please select both a source and endpoint");
+    const sourceType = document.querySelector('input[name="stats-source-type"]:checked').value;
+    const statsConfig = { sourceType, configured: true };
+    
+    if (sourceType === 'calculation') {
+        const calculationId = document.getElementById('stats-calculation').value;
+        if (!calculationId) {
+            alert('Please select a calculation');
+            return;
+        }
+        
+        statsConfig.calculationId = calculationId;
+        statsConfig.calculationName = dashboardState.calculations[calculationId]?.name || 'Unknown';
+        
+        try {
+            const result = await executeCalculationById(calculationId);
+            updateStatsCardFromCalculation(currentCustomizingCard, result, statsConfig.calculationName);
+        } catch (error) {
+            console.error('Error executing calculation:', error);
+            alert('Error executing calculation: ' + error.message);
+            return;
+        }
+    } else {
+        // Manual configuration
+        const leftSubroute = document.getElementById('stats-subroute-left').value;
+        const rightSubroute = document.getElementById('stats-subroute-right').value;
+        const leftType = document.getElementById('stats-left-type').value;
+        const rightType = document.getElementById('stats-right-type').value;
+        const leftField = document.getElementById('stats-left-field').value;
+        const rightField = document.getElementById('stats-right-field').value;
+        const leftLabel = document.getElementById('stats-left-label').value;
+        const rightLabel = document.getElementById('stats-right-label').value;
+        
+        if (!leftSubroute || !rightSubroute) {
+            alert('Please select both data sources');
+            return;
+        }
+        
+        // Save configuration
+        Object.assign(statsConfig, {
+            leftSubroute, rightSubroute, leftType, rightType,
+            leftField, rightField, leftLabel, rightLabel
+        });
+        
+        try {
+            const [leftResponse, rightResponse] = await Promise.all([
+                cachedFetch(`${dashboardSource[3]}${leftSubroute}`, {}, { ttl: 300000 }),
+                cachedFetch(`${dashboardSource[3]}${rightSubroute}`, {}, { ttl: 300000 })
+            ]);
+            
+            const leftData = await leftResponse.json();
+            const rightData = await rightResponse.json();
+            
+            updateStatsCardFromData(currentCustomizingCard, leftData, rightData, {
+                leftType, rightType, leftField, rightField, leftLabel, rightLabel
+            });
+        } catch (error) {
+            console.error('Error fetching stats data:', error);
+            alert('Error fetching data: ' + error.message);
+            return;
+        }
     }
-
-    const sourceConfig = dashboardSource;
-    if (!sourceConfig) {
-        return alert("Source not found");
-    }
-
-    const leftUrl = `${sourceConfig[3]}${leftSubroute}`;
-    const rightUrl = `${sourceConfig[3]}${rightSubroute}`;
-
-    try {
-        // Use cached fetch with 10 minute TTL for stats
-        const [leftResponse, rightResponse] = await Promise.all([
-            cachedFetch(leftUrl, {}, { ttl: 10 * 60 * 1000 }),
-            cachedFetch(rightUrl, {}, { ttl: 10 * 60 * 1000 })
-        ]);
-
-        const leftData = await leftResponse.json();
-        const rightData = await rightResponse.json();
-
-        console.log("Stats data fetched:", leftData, rightData);
-        updateStatsCard(currentCustomizingCard, leftData, rightData, leftField, rightField);
-    } catch (error) {
-        console.error("Error fetching stats data:", error);
-        alert("Failed to fetch data. Check console for details.");
-    }
+    
+    // Store the configuration in the card element
+    currentCustomizingCard.dataset.statsConfig = JSON.stringify(statsConfig);
 }
 
 async function applyChartCustomization() {
-    const calculationId = document.getElementById("chart-calculation").value;
-    const chartType = document.getElementById("chart-type").value;
-    const xField = document.getElementById("chart-x-field").value;
-    const yField = document.getElementById("chart-y-field").value;
-
-    let chartData = [];
-
-    if (calculationId) {
-        const calculation = dashboardState.calculations[calculationId];
-        if (!calculation) {
-            return alert("Calculation not found");
+    const sourceType = document.querySelector('input[name="chart-source-type"]:checked').value;
+    const chartType = document.getElementById('chart-type').value;
+    const xField = document.getElementById('chart-x-field').value;
+    const yField = document.getElementById('chart-y-field').value;
+    const title = document.getElementById('chart-title').value;
+    
+    const chartConfig = { 
+        sourceType, 
+        configured: true, 
+        chartType, 
+        xField, 
+        yField, 
+        title 
+    };
+    
+    let data = [];
+    
+    if (sourceType === 'calculation') {
+        const calculationId = document.getElementById('chart-calculation').value;
+        if (!calculationId) {
+            alert('Please select a calculation');
+            return;
         }
-
-        const baseUrl = dashboardSource[3];
+        
+        chartConfig.calculationId = calculationId;
         
         try {
-            // Use cached fetch with 5 minute TTL for calculation data
-            const [response1, response2] = await Promise.all([
-                cachedFetch(baseUrl + calculation.subroute1, {}, { ttl: 5 * 60 * 1000 }),
-                cachedFetch(baseUrl + calculation.subroute2, {}, { ttl: 5 * 60 * 1000 })
-            ]);
-
-            const data1 = await response1.json();
-            const data2 = await response2.json();
-
-            try {
-                chartData = Function("users", "posts", `return ${calculation.logic}`)(data1, data2);
-            } catch (error) {
-                return alert("Calculation error: " + error.message);
-            }
+            data = await executeCalculationById(calculationId);
         } catch (error) {
-            console.error("Error fetching calculation data:", error);
-            return alert("Failed to fetch calculation data.");
+            console.error('Error executing calculation:', error);
+            alert('Error executing calculation: ' + error.message);
+            return;
         }
     } else {
-        const source = document.getElementById("chart-source").value;
-        const subroute = document.getElementById("chart-subroute").value;
-
-        if (!source || !subroute) {
-            return alert("Please select both a source and endpoint");
+        const subroute = document.getElementById('chart-subroute').value;
+        if (!subroute) {
+            alert('Please select a data endpoint');
+            return;
         }
-
-        const sourceConfig = dashboardSource.find(s => s[0] === source);
-        if (!sourceConfig) {
-            return alert("Source not found");
+        if (!xField || !yField) {
+            alert('Please specify both X and Y axis fields');
+            return;
         }
-
-        const url = `${sourceConfig[3]}${subroute}`;
+        
+        chartConfig.subroute = subroute;
         
         try {
-            // Use cached fetch with 5 minute TTL for chart data
-            const response = await cachedFetch(url, {}, { ttl: 5 * 60 * 1000 });
-            chartData = await response.json();
+            const response = await cachedFetch(`${dashboardSource[3]}${subroute}`, {}, { ttl: 300000 });
+            data = await response.json();
         } catch (error) {
-            console.error("Error fetching chart data:", error);
-            return alert("Failed to fetch chart data.");
+            console.error('Error fetching chart data:', error);
+            alert('Error fetching data: ' + error.message);
+            return;
         }
     }
+    
+    updateChartCard(currentCustomizingCard, data, chartType, xField, yField, title);
+    
+    // Store the configuration in the card element
+    currentCustomizingCard.dataset.chartConfig = JSON.stringify(chartConfig);
+}
 
-    updateChartCard(currentCustomizingCard, chartData, chartType, xField, yField);
+async function applyTableCustomization() {
+    const sourceType = document.querySelector('input[name="table-source-type"]:checked').value;
+    const maxRows = parseInt(document.getElementById('table-max-rows').value) || 10;
+    const showPagination = document.getElementById('table-show-pagination').checked;
+    
+    const tableConfig = { 
+        sourceType, 
+        configured: true, 
+        maxRows, 
+        showPagination 
+    };
+    
+    let data = [];
+    
+    if (sourceType === 'calculation') {
+        const calculationId = document.getElementById('table-calculation').value;
+        if (!calculationId) {
+            alert('Please select a calculation');
+            return;
+        }
+        
+        tableConfig.calculationId = calculationId;
+        
+        try {
+            data = await executeCalculationById(calculationId);
+        } catch (error) {
+            console.error('Error executing calculation:', error);
+            alert('Error executing calculation: ' + error.message);
+            return;
+        }
+    } else {
+        const subroute = document.getElementById('table-subroute').value;
+        if (!subroute) {
+            alert('Please select a data endpoint');
+            return;
+        }
+        
+        tableConfig.subroute = subroute;
+        
+        try {
+            const response = await cachedFetch(`${dashboardSource[3]}${subroute}`, {}, { ttl: 300000 });
+            data = await response.json();
+        } catch (error) {
+            console.error('Error fetching table data:', error);
+            alert('Error fetching data: ' + error.message);
+            return;
+        }
+    }
+    
+    updateTableCard(currentCustomizingCard, data, maxRows, showPagination);
+    
+    // Store the configuration in the card element
+    currentCustomizingCard.dataset.tableConfig = JSON.stringify(tableConfig);
+}
+
+async function executeCalculationById(calculationId) {
+    const calculation = dashboardState.calculations[calculationId];
+    if (!calculation) {
+        throw new Error('Calculation not found');
+    }
+    
+    // Execute the calculation flow
+    let data = null;
+    
+    for (let i = 0; i < calculation.flow.length; i++) {
+        const step = calculation.flow[i];
+        
+        if (step.type === 'source') {
+            try {
+                const response = await cachedFetch(step.sourceUrl, {}, { ttl: 180000 });
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch data: ${response.status}`);
+                }
+                data = await response.json();
+            } catch (error) {
+                throw new Error(`Failed to fetch source data: ${error.message}`);
+            }
+        } else {
+            data = await processCalculationStep(step, data);
+        }
+    }
+    
+    return data;
+}
+
+async function restoreStatsCard(cardElement, config) {
+    try {
+        const statsConfig = config.statsConfig;
+        
+        if (statsConfig.sourceType === 'calculation') {
+            // Restore from calculation
+            const calculationResult = await executeCalculationById(statsConfig.calculationId);
+            updateStatsCardFromCalculation(cardElement, calculationResult, statsConfig.calculationName);
+        } else if (statsConfig.sourceType === 'manual') {
+            // Restore from manual configuration
+            const [leftData, rightData] = await Promise.all([
+                cachedFetch(`${dashboardSource[3]}${statsConfig.leftSubroute}`, {}, { ttl: 300000 }),
+                cachedFetch(`${dashboardSource[3]}${statsConfig.rightSubroute}`, {}, { ttl: 300000 })
+            ]);
+            
+            const leftJson = await leftData.json();
+            const rightJson = await rightData.json();
+            
+            updateStatsCardFromData(cardElement, leftJson, rightJson, {
+                leftType: statsConfig.leftType,
+                rightType: statsConfig.rightType,
+                leftField: statsConfig.leftField,
+                rightField: statsConfig.rightField,
+                leftLabel: statsConfig.leftLabel,
+                rightLabel: statsConfig.rightLabel
+            });
+        }
+    } catch (error) {
+        console.error('Error restoring stats card:', error);
+        // Show error state or fallback to saved display data
+        if (config.currentStats) {
+            const cardContent = cardElement.querySelector('.card-content');
+            cardContent.innerHTML = `
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="text-center py-2">
+                        <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">${config.currentStats.leftValue}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">${config.currentStats.leftLabel}</div>
+                    </div>
+                    <div class="text-center py-2">
+                        <div class="text-2xl font-bold text-green-600 dark:text-green-400">${config.currentStats.rightValue}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">${config.currentStats.rightLabel}</div>
+                    </div>
+                </div>
+                <div class="text-xs text-red-500 mt-2">⚠ Data source temporarily unavailable</div>
+            `;
+        }
+    }
+}
+
+// New function to restore chart cards from saved configuration
+async function restoreChartCard(cardElement, config) {
+    try {
+        const chartConfig = config.chartConfig;
+        let data = [];
+        
+        if (chartConfig.sourceType === 'calculation') {
+            // Restore from calculation
+            data = await executeCalculationById(chartConfig.calculationId);
+        } else if (chartConfig.sourceType === 'manual') {
+            // Restore from manual configuration
+            const response = await cachedFetch(`${dashboardSource[3]}${chartConfig.subroute}`, {}, { ttl: 300000 });
+            data = await response.json();
+        }
+        
+        updateChartCard(
+            cardElement, 
+            data, 
+            chartConfig.chartType || 'bar',
+            chartConfig.xField || 'x',
+            chartConfig.yField || 'y',
+            chartConfig.title || ''
+        );
+    } catch (error) {
+        console.error('Error restoring chart card:', error);
+        // Fallback to saved chart data if available
+        if (config.chartData) {
+            const cardContent = cardElement.querySelector('.card-content');
+            cardContent.innerHTML = `<canvas id="chartjs-${cardElement.dataset.cardId}" class="w-full h-64"></canvas>`;
+            
+            setTimeout(() => {
+                if (window.Chart) {
+                    const canvas = document.getElementById(`chartjs-${cardElement.dataset.cardId}`);
+                    if (canvas) {
+                        const ctx = canvas.getContext('2d');
+                        window.chartInstances = window.chartInstances || {};
+                        window.chartInstances[cardElement.dataset.cardId] = new Chart(ctx, {
+                            type: config.chartData.type,
+                            data: {
+                                labels: config.chartData.labels,
+                                datasets: config.chartData.datasets
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    title: {
+                                        display: !!config.chartData.title,
+                                        text: config.chartData.title + ' (cached)'
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+            }, 100);
+        }
+    }
+}
+
+// New function to restore table cards from saved configuration
+async function restoreTableCard(cardElement, config) {
+    try {
+        const tableConfig = config.tableConfig;
+        let data = [];
+        
+        if (tableConfig.sourceType === 'calculation') {
+            // Restore from calculation
+            data = await executeCalculationById(tableConfig.calculationId);
+        } else if (tableConfig.sourceType === 'manual') {
+            // Restore from manual configuration
+            const response = await cachedFetch(`${dashboardSource[3]}${tableConfig.subroute}`, {}, { ttl: 300000 });
+            data = await response.json();
+        }
+        
+        updateTableCard(
+            cardElement,
+            data,
+            tableConfig.maxRows || 10,
+            tableConfig.showPagination || false
+        );
+    } catch (error) {
+        console.error('Error restoring table card:', error);
+        // Fallback to saved table data if available
+        if (config.tableData) {
+            const cardContent = cardElement.querySelector('.card-content');
+            cardContent.innerHTML = `
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>${config.tableData.headers.map(header => `<th class="px-3 py-2 text-left font-medium text-gray-900 dark:text-white">${header}</th>`).join('')}</tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-600">
+                            ${config.tableData.rows.map(row => `
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    ${row.map(cell => `<td class="px-3 py-2 text-gray-900 dark:text-white">${cell}</td>`).join('')}
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <div class="text-xs text-red-500 mt-2">⚠ Showing cached data - source temporarily unavailable</div>
+                </div>
+            `;
+        }
+    }
+}
+
+function updateStatsCardFromCalculation(cardElement, data, calculationName) {
+    const cardContent = cardElement.querySelector('.card-content');
+    
+    let statsHtml = '';
+    
+    if (Array.isArray(data)) {
+        statsHtml = `
+            <div class="grid grid-cols-2 gap-4">
+                <div class="text-center py-2">
+                    <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">${data.length}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Items</div>
+                </div>
+                <div class="text-center py-2">
+                    <div class="text-2xl font-bold text-green-600 dark:text-green-400">${data.length > 0 ? Object.keys(data[0]).length : 0}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Fields</div>
+                </div>
+            </div>
+        `;
+    } else if (typeof data === 'object' && data !== null) {
+        const keys = Object.keys(data);
+        const firstKey = keys[0];
+        const secondKey = keys[1] || keys[0];
+        
+        statsHtml = `
+            <div class="grid grid-cols-2 gap-4">
+                <div class="text-center py-2">
+                    <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">${data[firstKey] || 'N/A'}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">${firstKey}</div>
+                </div>
+                <div class="text-center py-2">
+                    <div class="text-2xl font-bold text-green-600 dark:text-green-400">${data[secondKey] || 'N/A'}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">${secondKey}</div>
+                </div>
+            </div>
+        `;
+    } else {
+        statsHtml = `
+            <div class="text-center py-4">
+                <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">${data}</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400 mt-2">${calculationName}</div>
+            </div>
+        `;
+    }
+    
+    cardContent.innerHTML = statsHtml;
+}
+
+function updateStatsCardFromData(cardElement, leftData, rightData, config) {
+    const cardContent = cardElement.querySelector('.card-content');
+    
+    let leftValue, rightValue;
+    
+    // Calculate left value
+    if (config.leftType === 'count') {
+        leftValue = Array.isArray(leftData) ? leftData.length : 1;
+    } else {
+        leftValue = config.leftField && leftData[config.leftField] ? leftData[config.leftField] : 'N/A';
+    }
+    
+    // Calculate right value
+    if (config.rightType === 'count') {
+        rightValue = Array.isArray(rightData) ? rightData.length : 1;
+    } else {
+        rightValue = config.rightField && rightData[config.rightField] ? rightData[config.rightField] : 'N/A';
+    }
+    
+    const statsHtml = `
+        <div class="grid grid-cols-2 gap-4">
+            <div class="text-center py-2">
+                <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">${leftValue}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">${config.leftLabel || 'Metric 1'}</div>
+            </div>
+            <div class="text-center py-2">
+                <div class="text-2xl font-bold text-green-600 dark:text-green-400">${rightValue}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">${config.rightLabel || 'Metric 2'}</div>
+            </div>
+        </div>
+    `;
+    
+    cardContent.innerHTML = statsHtml;
+}
+
+function updateTableCard(cardElement, data, maxRows = 10, showPagination = false) {
+    const cardContent = cardElement.querySelector('.card-content');
+    
+    if (!Array.isArray(data) || data.length === 0) {
+        cardContent.innerHTML = '<div class="text-gray-600 p-4">No data available</div>';
+        return;
+    }
+    
+    // Get headers from first object
+    const headers = Object.keys(data[0]);
+    const displayData = data.slice(0, maxRows);
+    
+    const tableHtml = `
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                        ${headers.map(header => `<th class="px-3 py-2 text-left font-medium text-gray-900 dark:text-white">${header}</th>`).join('')}
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-600">
+                    ${displayData.map(row => `
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            ${headers.map(header => `<td class="px-3 py-2 text-gray-900 dark:text-white">${row[header] || ''}</td>`).join('')}
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            ${showPagination && data.length > maxRows ? `
+                <div class="mt-3 text-xs text-gray-500 dark:text-gray-400 text-center">
+                    Showing ${maxRows} of ${data.length} rows
+                </div>
+            ` : ''}
+        </div>
+    `;
+    
+    cardContent.innerHTML = tableHtml;
+}
+
+document.addEventListener('change', function(e) {
+    if (e.target && e.target.id === 'stats-left-type') {
+        const fieldInput = document.getElementById('stats-left-field');
+        fieldInput.style.display = e.target.value === 'field' ? 'block' : 'none';
+    }
+    
+    if (e.target && e.target.id === 'stats-right-type') {
+        const fieldInput = document.getElementById('stats-right-field');
+        fieldInput.style.display = e.target.value === 'field' ? 'block' : 'none';
+    }
+    
+    // Auto-populate chart fields when calculation is selected
+    if (e.target && e.target.id === 'chart-calculation') {
+        const calculationId = e.target.value;
+        if (calculationId) {
+            populateChartFieldsFromCalculation(calculationId);
+        }
+    }
+    
+    // Auto-populate chart fields when manual subroute is selected
+    if (e.target && e.target.id === 'chart-subroute') {
+        const subroute = e.target.value;
+        if (subroute) {
+            populateChartFieldsFromSubroute(subroute);
+        }
+    }
+});
+
+
+async function populateChartFieldsFromCalculation(calculationId) {
+    try {
+        const data = await executeCalculationById(calculationId);
+        populateChartAxisFields(data);
+    } catch (error) {
+        console.error('Error loading calculation data for field population:', error);
+    }
+}
+
+// Helper function to populate chart fields from subroute
+async function populateChartFieldsFromSubroute(subroute) {
+    try {
+        const response = await cachedFetch(`${dashboardSource[3]}${subroute}`, {}, { ttl: 180000 });
+        const data = await response.json();
+        populateChartAxisFields(data);
+    } catch (error) {
+        console.error('Error loading subroute data for field population:', error);
+    }
+}
+
+// Helper function to populate chart axis field dropdowns
+function populateChartAxisFields(data) {
+    let fields = [];
+    
+    if (Array.isArray(data) && data.length > 0) {
+        // Handle array data
+        if (typeof data[0] === 'object') {
+            fields = Object.keys(data[0]);
+        }
+    } else if (typeof data === 'object' && data !== null) {
+        // Handle object data (like grouped results)
+        if (data.chartType && data.data) {
+            // Handle chart-formatted data from calculations
+            fields = data.data.length > 0 ? Object.keys(data.data[0]) : ['x', 'y'];
+        } else {
+            fields = Object.keys(data);
+        }
+    }
+    
+    const xFieldInput = document.getElementById('chart-x-field');
+    const yFieldInput = document.getElementById('chart-y-field');
+    
+    if (fields.length > 0 && xFieldInput && yFieldInput) {
+        // Convert text inputs to select dropdowns
+        const xFieldSelect = document.createElement('select');
+        xFieldSelect.id = 'chart-x-field';
+        xFieldSelect.className = xFieldInput.className;
+        xFieldSelect.innerHTML = fields.map(field => `<option value="${field}">${field}</option>`).join('');
+        
+        const yFieldSelect = document.createElement('select');
+        yFieldSelect.id = 'chart-y-field';
+        yFieldSelect.className = yFieldInput.className;
+        yFieldSelect.innerHTML = fields.map(field => `<option value="${field}">${field}</option>`).join('');
+        
+        xFieldInput.parentNode.replaceChild(xFieldSelect, xFieldInput);
+        yFieldInput.parentNode.replaceChild(yFieldSelect, yFieldInput);
+    }
 }
 
 function updateStatsCard(card, leftData, rightData, leftField, rightField) {
@@ -1548,78 +2459,119 @@ function updateStatsCard(card, leftData, rightData, leftField, rightField) {
     cardContent.innerHTML = statsHtml;
 }
 
-function updateChartCard(card, data, chartType, xField = 'name', yField = 'count') {
-    const cardContent = card.querySelector('.card-content');
+function updateChartCard(cardElement, data, chartType = 'bar', xField = 'x', yField = 'y', title = '') {
+    const cardContent = cardElement.querySelector('.card-content');
+    
     cardContent.innerHTML = `
-        <canvas id="chartjs-${card.dataset.cardId}" class="w-full h-64"></canvas>
+        <canvas id="chartjs-${cardElement.dataset.cardId}" class="w-full h-64"></canvas>
     `;
     
     setTimeout(() => {
         if (window.Chart) {
-            const canvas = document.getElementById(`chartjs-${card.dataset.cardId}`);
+            const canvas = document.getElementById(`chartjs-${cardElement.dataset.cardId}`);
             if (!canvas) {
                 console.error('Canvas element not found');
                 return;
             }
             
             const ctx = canvas.getContext('2d');
+            let chartData = [];
             
-            // Defensive: filter out undefined/null and empty objects
-            const filteredData = Array.isArray(data) ? data.filter(d => d && typeof d === 'object') : [];
-            
-            if (filteredData.length === 0) {
-                cardContent.innerHTML = `<div class="text-gray-600 p-4">No data available for chart</div>`;
+            // Handle different data formats
+            if (data && data.chartType && data.data) {
+                // Data is already formatted for charts (from calculation)
+                chartData = data.data;
+                chartType = data.chartType || chartType;
+                title = data.title || title;
+                xField = data.xField || xField;
+                yField = data.yField || yField;
+            } else if (Array.isArray(data)) {
+                // Regular array data
+                chartData = data.filter(item => item && typeof item === 'object');
+            } else {
+                console.error('Invalid data format for chart');
+                cardContent.innerHTML = '<div class="text-gray-600 p-4">Invalid data format for chart</div>';
                 return;
             }
             
-            const labels = filteredData.map(d => d[xField] ?? 'Unknown');
-            const values = filteredData.map(d => {
-                const val = d[yField];
-                return typeof val === 'number' ? val : (parseFloat(val) || 0);
+            if (chartData.length === 0) {
+                cardContent.innerHTML = '<div class="text-gray-600 p-4">No data available for chart</div>';
+                return;
+            }
+            
+            // Extract labels and values
+            const labels = chartData.map(item => {
+                const label = item[xField] ?? item.x ?? 'Unknown';
+                return String(label);
+            });
+            
+            const values = chartData.map(item => {
+                const value = item[yField] ?? item.y ?? item._original?.[yField] ?? 0;
+                return typeof value === 'number' ? value : parseFloat(value) || 0;
             });
             
             // Destroy existing chart if it exists
-            if (window.chartInstances && window.chartInstances[card.dataset.cardId]) {
-                window.chartInstances[card.dataset.cardId].destroy();
+            if (window.chartInstances && window.chartInstances[cardElement.dataset.cardId]) {
+                window.chartInstances[cardElement.dataset.cardId].destroy();
             }
             
-            // Initialize chart instances tracker
             if (!window.chartInstances) {
                 window.chartInstances = {};
             }
             
-            // Create the chart
-            window.chartInstances[card.dataset.cardId] = new Chart(ctx, {
+            // Create chart configuration
+            const config = {
                 type: chartType,
                 data: {
                     labels: labels,
                     datasets: [{
                         label: yField,
                         data: values,
-                        backgroundColor: chartType === 'line' ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.5)',
-                        borderColor: 'rgba(59,130,246,1)',
+                        backgroundColor: chartType === 'line' ? 'rgba(59,130,246,0.1)' : 
+                                       chartType === 'pie' || chartType === 'doughnut' ? 
+                                       labels.map((_, i) => `hsl(${i * 360 / labels.length}, 70%, 60%)`) :
+                                       'rgba(59,130,246,0.5)',
+                        borderColor: chartType === 'pie' || chartType === 'doughnut' ? 
+                                   labels.map((_, i) => `hsl(${i * 360 / labels.length}, 70%, 50%)`) :
+                                   'rgba(59,130,246,1)',
                         borderWidth: 2,
-                        fill: chartType === 'line' ? true : false
+                        fill: chartType === 'line'
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { 
+                    plugins: {
+                        title: {
+                            display: !!title,
+                            text: title
+                        },
+                        legend: {
                             display: true,
                             position: 'top'
                         }
                     },
                     scales: chartType !== 'pie' && chartType !== 'doughnut' ? {
+                        x: {
+                            title: {
+                                display: !!xField,
+                                text: xField
+                            }
+                        },
                         y: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            title: {
+                                display: !!yField,
+                                text: yField
+                            }
                         }
                     } : {}
                 }
-            });
+            };
+            
+            window.chartInstances[cardElement.dataset.cardId] = new Chart(ctx, config);
         } else {
-            cardContent.innerHTML = `<div class="text-red-600 mt-2 p-4">ChartJS library not loaded</div>`;
+            cardContent.innerHTML = '<div class="text-red-600 mt-2 p-4">ChartJS library not loaded</div>';
         }
     }, 100);
 }
@@ -1720,23 +2672,19 @@ class APICache {
 
 function clearAPICache() {
     window.apiCache.clear();
-    console.log("API cache cleared");
 }
 
 function getCacheStats() {
     const stats = window.apiCache.getStats();
-    console.log("Cache Statistics:", stats);
     return stats;
 }
 
 function cleanupExpiredCache() {
     window.apiCache.cleanup();
-    console.log("Expired cache entries cleaned up");
 }
 
 function invalidateCacheByPattern(pattern) {
     window.apiCache.invalidateByPattern(pattern);
-    console.log(`Cache entries matching pattern "${pattern}" invalidated`);
 }
 
 
@@ -1776,8 +2724,6 @@ document.addEventListener("change", async function(event) {
                 } catch (error) {
                     calculationResult = [];
                 }
-
-                console.log("Calculation data:", calculationResult);
 
                 let availableFields = [];
                 if (Array.isArray(calculationResult) && calculationResult.length > 0 && typeof calculationResult[0] === 'object') {

@@ -74,9 +74,6 @@ function showCalculationBuilder(calcId = null) {
         window.currentCalcFlow = calc.flow ? JSON.parse(JSON.stringify(calc.flow)) : [];
         window.currentCalcName = calc.name || "";
         window.currentCalcDescription = calc.description || "";
-        
-        // Debug: Log the loaded flow to verify config is present
-        console.log("Loaded calculation flow:", window.currentCalcFlow);
     } else {
         window.currentCalcFlow = [];
         window.currentCalcName = "";
@@ -313,7 +310,8 @@ function renderCalculationOperations() {
         { type: "join", label: "Join", desc: "Join with another data source" },
         { type: "map", label: "Map", desc: "Transform/rename fields" },
         { type: "distinct", label: "Distinct", desc: "Get unique values" },
-        { type: "calculate", label: "Calculate", desc: "Create calculated fields" }
+        { type: "calculate", label: "Calculate", desc: "Create calculated fields" },
+        { type:"chart", label:"Chart", desc:"Convert data for Chart.js visualization" }
     ];
     
     operations.forEach(t => {
@@ -365,103 +363,6 @@ function handleCalcDrop(e) {
     }
     
     renderCalculationFlow();
-}
-
-
-function renderCalculationFlow() {
-    const e = document.getElementById("calc-flow-dropzone");
-    e.innerHTML = "";
-    e.addEventListener("dragover", (function(e) { e.preventDefault() }));
-    e.addEventListener("drop", handleCalcDrop);
-    window.currentCalcFlow = window.currentCalcFlow || [];
-    
-    if (window.currentCalcFlow.length === 0) {
-        e.innerHTML = '<div class="text-gray-500 dark:text-gray-400 text-center w-full">Drag data sources and operations here to build your calculation</div>';
-        return;
-    }
-    
-    window.currentCalcFlow.forEach((step, index) => {
-        const node = document.createElement("div");
-        let nodeClasses = "calc-flow-node bg-white dark:bg-gray-700 border rounded px-4 py-3 flex flex-col items-center justify-center min-w-[120px] relative shadow-sm cursor-pointer";
-        
-        // Determine if step is configured
-        const isConfigured = step.config && Object.keys(step.config).length > 0 && 
-            Object.values(step.config).some(value => {
-                if (Array.isArray(value)) return value.length > 0;
-                if (typeof value === 'object' && value !== null) return Object.keys(value).length > 0;
-                return value !== "" && value != null;
-            });
-        
-        if (isConfigured) {
-            nodeClasses += " border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/20";
-        } else if (step.type !== "source") {
-            nodeClasses += " border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20";
-        } else {
-            nodeClasses += " border-blue-300 dark:border-blue-700";
-        }
-        
-        node.className = nodeClasses;
-        
-        let displayText = step.label || step.type || step.sourceName;
-        if (isConfigured) {
-            displayText += " ✓";
-        } else if (step.type !== "source") {
-            displayText += " ⚠";
-        }
-        
-        node.innerHTML = `<span class="font-semibold text-gray-900 dark:text-white text-center">${displayText}</span>`;
-        
-        // Show configuration summary for configured steps
-        if (isConfigured && step.config) {
-            let configSummary = "";
-            switch(step.type) {
-                case "filter":
-                    configSummary = `${step.config.field} ${step.config.operator} ${step.config.value}`;
-                    break;
-                case "group":
-                    configSummary = `by ${step.config.field}`;
-                    break;
-                case "sort":
-                    configSummary = `by ${step.config.field} (${step.config.direction})`;
-                    break;
-                case "limit":
-                    configSummary = `${step.config.count} items`;
-                    break;
-                case "aggregate":
-                    configSummary = `${step.config.operations?.length || 0} ops`;
-                    break;
-                case "calculate":
-                    configSummary = `${step.config.calculations?.length || 0} calcs`;
-                    break;
-                default:
-                    configSummary = "configured";
-            }
-            if (configSummary) {
-                node.innerHTML += `<div class="text-xs mt-1 text-gray-600 dark:text-gray-400 text-center">${configSummary}</div>`;
-            }
-        }
-        
-        if (step.type !== "source" && step.inputs && step.inputs.length) {
-            node.innerHTML += `<div class="text-xs mt-2 text-gray-500 dark:text-gray-400 text-center">Inputs: ${step.inputs.map(e => e.sourceName || e.label || e.type).join(", ")}</div>`;
-        }
-        
-        node.innerHTML += `<button class="absolute top-1 right-1 text-red-500 hover:text-red-700 w-6 h-6 flex items-center justify-center" onclick="removeCalcFlowStep(${index})" title="Remove step"><i class="fa fa-times"></i></button>`;
-        
-        node.onclick = function(event) {
-            if (!event.target.closest("button")) {
-                editCalcFlowNode(index);
-            }
-        };
-        
-        e.appendChild(node);
-        
-        if (index < window.currentCalcFlow.length - 1) {
-            const arrow = document.createElement("div");
-            arrow.className = "calc-flow-arrow flex items-center justify-center";
-            arrow.innerHTML = '<span class="mx-2 text-blue-400 text-xl">→</span>';
-            e.appendChild(arrow);
-        }
-    });
 }
 
 function removeCalcFlowStep(e) {
@@ -599,6 +500,8 @@ async function processCalculationStep(step, data) {
             return processDistinct(step, data);
         case "calculate":
             return processCalculate(step, data);
+        case"chart":
+            return processChart(step, data);
         default:
             throw new Error("Unknown step type: " + step.type);
     }
@@ -675,6 +578,54 @@ function processGroupBy(step, data) {
     }
     
     return groups;
+}
+
+function processChart(step, inputData) {
+    const config = step.config || {};
+    
+    if (!config.xField || !config.yField) {
+        throw new Error('Chart step requires both X and Y field configuration');
+    }
+    
+    if (!Array.isArray(inputData)) {
+        throw new Error('Chart step requires array input');
+    }
+    
+    // Handle grouped data (arrays with items property)
+    let data = inputData;
+    if (inputData.length > 0 && inputData[0].items && Array.isArray(inputData[0].items)) {
+        data = inputData.flatMap(group => group.items);
+    }
+    
+    // Filter and map data points
+    const chartData = data.map(item => ({
+        x: item[config.xField],
+        y: item[config.yField],
+        _original: item
+    })).filter(point => 
+        point.x !== undefined && point.x !== null && 
+        point.y !== undefined && point.y !== null
+    );
+    
+    // Sort by X values if requested
+    if (config.sortByX) {
+        chartData.sort((a, b) => {
+            if (typeof a.x === 'number' && typeof b.x === 'number') {
+                return a.x - b.x;
+            }
+            return String(a.x).localeCompare(String(b.x));
+        });
+    }
+    
+    return {
+        chartType: config.chartType || 'line',
+        data: chartData,
+        xField: config.xField,
+        yField: config.yField,
+        title: config.title || `${config.yField} by ${config.xField}`,
+        xLabel: config.xLabel || config.xField,
+        yLabel: config.yLabel || config.yField
+    };
 }
 
 function processCount(step, data) {
@@ -1104,9 +1055,116 @@ function generateNodeConfigForm(step, inputData) {
             return generateDistinctForm(config, inputData);
         case "calculate":
             return generateCalculateForm(config, inputData);
+        case "chart":
+            return generateChartForm(config, inputData);
         default:
             return "<p>No configuration needed for this step.</p>";
     }
+}
+
+function generateChartForm(config, inputData) {
+    let data = inputData;
+    let availableFields = [];
+    
+    // Handle different input data formats
+    if (Array.isArray(inputData)) {
+        if (inputData.length > 0) {
+            // Check if it's grouped data with items
+            if (inputData[0].items && Array.isArray(inputData[0].items)) {
+                data = inputData[0].items.length > 0 ? inputData[0].items : [];
+                if (data.length > 0) {
+                    availableFields = Object.keys(data[0]);
+                }
+            } else {
+                availableFields = Object.keys(inputData[0]);
+            }
+        }
+    }
+
+    return `
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Input Data Preview</h4>
+                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto">${
+                    inputData ? JSON.stringify(Array.isArray(data) ? data.slice(0, 3) : data, null, 2) : "No data"
+                }</pre>
+                <div class="mt-2 text-xs text-gray-600 dark:text-gray-400">
+                    <strong>Available fields:</strong> ${availableFields.join(", ")}
+                </div>
+            </div>
+            <div>
+                <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Chart Configuration</h4>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Chart Type</label>
+                        <select id="chart-type" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" onchange="previewNodeConfig()">
+                            <option value="line" ${config.chartType === "line" ? "selected" : ""}>Line Chart</option>
+                            <option value="bar" ${config.chartType === "bar" ? "selected" : ""}>Bar Chart</option>
+                            <option value="scatter" ${config.chartType === "scatter" ? "selected" : ""}>Scatter Plot</option>
+                            <option value="pie" ${config.chartType === "pie" ? "selected" : ""}>Pie Chart</option>
+                            <option value="doughnut" ${config.chartType === "doughnut" ? "selected" : ""}>Doughnut Chart</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">X-Axis Field</label>
+                        <select id="chart-x-field" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" onchange="previewNodeConfig()">
+                            <option value="">Select X field...</option>
+                            ${availableFields.map(field => 
+                                `<option value="${field}" ${config.xField === field ? "selected" : ""}>${field}</option>`
+                            ).join("")}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Y-Axis Field</label>
+                        <select id="chart-y-field" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" onchange="previewNodeConfig()">
+                            <option value="">Select Y field...</option>
+                            ${availableFields.map(field => 
+                                `<option value="${field}" ${config.yField === field ? "selected" : ""}>${field}</option>`
+                            ).join("")}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Chart Title</label>
+                        <input type="text" id="chart-title" value="${config.title || ""}" 
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" 
+                               placeholder="Enter chart title..." onchange="previewNodeConfig()">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">X-Axis Label</label>
+                            <input type="text" id="chart-x-label" value="${config.xLabel || ""}" 
+                                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" 
+                                   placeholder="X-axis label..." onchange="previewNodeConfig()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Y-Axis Label</label>
+                            <input type="text" id="chart-y-label" value="${config.yLabel || ""}" 
+                                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" 
+                                   placeholder="Y-axis label..." onchange="previewNodeConfig()">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="chart-sort-x" ${config.sortByX ? "checked" : ""} 
+                                   class="mr-2 rounded border-gray-300 dark:border-gray-600" onchange="previewNodeConfig()">
+                            <span class="text-sm text-gray-700 dark:text-gray-300">Sort by X-axis values</span>
+                        </label>
+                    </div>
+                    <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
+                        <h5 class="font-medium text-blue-900 dark:text-blue-100 mb-2">Dashboard Integration</h5>
+                        <p class="text-xs text-blue-800 dark:text-blue-200">
+                            This chart configuration will be used when you select this calculation in dashboard chart widgets.
+                            The chart type, fields, and styling will be automatically applied.
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <h5 class="font-medium mb-2 text-gray-900 dark:text-white">Preview Result</h5>
+                    <div id="node-preview" class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-32 overflow-auto">Configure fields to see preview</div>
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 function generateAggregateForm(config, inputData) {
@@ -1825,37 +1883,36 @@ async function previewNodeConfig() {
 function collectNodeConfig() {
     if (!window.currentEditingStep) return {};
     
-    const {step} = window.currentEditingStep;
+    const { step } = window.currentEditingStep;
     const config = {};
     
-    switch(step.type) {
-        case "filter":
-            config.field = document.getElementById("filter-field")?.value || "";
-            config.operator = document.getElementById("filter-operator")?.value || "equals";
-            config.value = document.getElementById("filter-value")?.value || "";
+    switch (step.type) {
+        case 'filter':
+            config.field = document.getElementById('filter-field')?.value || '';
+            config.operator = document.getElementById('filter-operator')?.value || 'equals';
+            config.value = document.getElementById('filter-value')?.value || '';
             break;
             
-        case "group":
-            config.field = document.getElementById("group-field")?.value || "";
-            config.outputFormat = document.getElementById("group-output-format")?.value || "object";
+        case 'group':
+            config.field = document.getElementById('group-field')?.value || '';
+            config.outputFormat = document.getElementById('group-output-format')?.value || 'object';
             break;
             
-        case "count":
-            const countTypeElement = document.getElementById("count-type");
-            config.countType = countTypeElement?.value || "items";
+        case 'count':
+            const countType = document.getElementById('count-type');
+            config.countType = countType?.value || 'items';
             break;
             
-        case "sum":
-            config.field = document.getElementById("sum-field")?.value || "";
+        case 'sum':
+            config.field = document.getElementById('sum-field')?.value || '';
             break;
             
-        case "aggregate":
+        case 'aggregate':
             const operations = [];
-            document.querySelectorAll("#aggregate-operations > div").forEach(operationDiv => {
-                const type = operationDiv.querySelector(".operation-type")?.value;
-                const field = operationDiv.querySelector(".operation-field")?.value;
-                const alias = operationDiv.querySelector(".operation-alias")?.value;
-                
+            document.querySelectorAll('#aggregate-operations > div').forEach(opDiv => {
+                const type = opDiv.querySelector('.operation-type')?.value;
+                const field = opDiv.querySelector('.operation-field')?.value;
+                const alias = opDiv.querySelector('.operation-alias')?.value;
                 if (type) {
                     operations.push({
                         type: type,
@@ -1867,27 +1924,26 @@ function collectNodeConfig() {
             config.operations = operations;
             break;
             
-        case "sort":
-            config.field = document.getElementById("sort-field")?.value || "";
-            config.direction = document.getElementById("sort-direction")?.value || "asc";
+        case 'sort':
+            config.field = document.getElementById('sort-field')?.value || '';
+            config.direction = document.getElementById('sort-direction')?.value || 'asc';
             break;
             
-        case "limit":
-            config.count = parseInt(document.getElementById("limit-count")?.value) || 10;
-            config.offset = parseInt(document.getElementById("limit-offset")?.value) || 0;
+        case 'limit':
+            config.count = parseInt(document.getElementById('limit-count')?.value) || 10;
+            config.offset = parseInt(document.getElementById('limit-offset')?.value) || 0;
             break;
             
-        case "distinct":
-            config.field = document.getElementById("distinct-field")?.value || undefined;
+        case 'distinct':
+            config.field = document.getElementById('distinct-field')?.value || undefined;
             break;
             
-        case "calculate":
+        case 'calculate':
             const calculations = [];
-            document.querySelectorAll("#calculated-fields > div").forEach(calcDiv => {
-                const field = calcDiv.querySelector(".calc-field")?.value;
-                const expression = calcDiv.querySelector(".calc-expression")?.value;
-                const alias = calcDiv.querySelector(".calc-alias")?.value;
-                
+            document.querySelectorAll('#calculated-fields > div').forEach(calcDiv => {
+                const field = calcDiv.querySelector('.calc-field')?.value;
+                const expression = calcDiv.querySelector('.calc-expression')?.value;
+                const alias = calcDiv.querySelector('.calc-alias')?.value;
                 if (field && expression) {
                     calculations.push({
                         field: field,
@@ -1899,29 +1955,33 @@ function collectNodeConfig() {
             config.calculations = calculations;
             break;
             
-        case "join":
-            config.joinField = document.getElementById("join-field")?.value || "";
-            config.joinSource = parseInt(document.getElementById("join-source")?.value) || 0;
-            config.joinType = document.getElementById("join-type")?.value || "inner";
+        case 'chart':
+            config.chartType = document.getElementById('chart-type')?.value || 'line';
+            config.xField = document.getElementById('chart-x-field')?.value || '';
+            config.yField = document.getElementById('chart-y-field')?.value || '';
+            config.title = document.getElementById('chart-title')?.value || '';
+            config.xLabel = document.getElementById('chart-x-label')?.value || '';
+            config.yLabel = document.getElementById('chart-y-label')?.value || '';
+            config.sortByX = document.getElementById('chart-sort-x')?.checked || false;
             break;
             
-        case "map":
-            const mappings = {};
-            const newFields = document.querySelectorAll(".field-mapping-new");
-            const oldFields = document.querySelectorAll(".field-mapping-old");
+        case 'join':
+            config.joinField = document.getElementById('join-field')?.value || '';
+            config.joinSource = parseInt(document.getElementById('join-source')?.value) || 0;
+            config.joinType = document.getElementById('join-type')?.value || 'inner';
+            break;
             
+        case 'map':
+            const mapping = {};
+            const newFields = document.querySelectorAll('.field-mapping-new');
+            const oldFields = document.querySelectorAll('.field-mapping-old');
             newFields.forEach((newField, index) => {
                 const oldField = oldFields[index];
                 if (newField.value && oldField.value) {
-                    mappings[newField.value] = oldField.value;
+                    mapping[newField.value] = oldField.value;
                 }
             });
-            
-            config.mapping = mappings;
-            break;
-            
-        default:
-            // For unknown types, don't collect any config
+            config.mapping = mapping;
             break;
     }
     
@@ -1956,100 +2016,46 @@ function applyNodeConfiguration() {
     closeNodeConfigModal();
 }
 
-function validateNodeConfig(stepType, config) {
-    switch(stepType) {
-        case "filter":
-            if (!config.field) {
-                alert("Please select a field to filter by.");
-                return false;
-            }
-            if (config.value === "" && config.operator !== "is_null" && config.operator !== "is_not_null") {
-                alert("Please enter a value to filter by.");
-                return false;
-            }
+function validateNodeConfig(e,t){
+    switch(e){
+        case"filter":
+            if(!t.field)return alert("Please select a field to filter by."),!1;
+            if(""===t.value&&"is_null"!==t.operator&&"is_not_null"!==t.operator)return alert("Please enter a value to filter by."),!1;
             break;
-            
-        case "group":
-            if (!config.field) {
-                alert("Please select a field to group by.");
-                return false;
-            }
+        case"group":
+            if(!t.field)return alert("Please select a field to group by."),!1;
             break;
-            
-        case "sum":
-            // Sum can work with auto-detection if no field specified
+        case"chart":
+            if(!t.xField)return alert("Please select an X-axis field."),!1;
+            if(!t.yField)return alert("Please select a Y-axis field."),!1;
             break;
-            
-        case "aggregate":
-            if (!config.operations || config.operations.length === 0) {
-                alert("Please add at least one aggregation operation.");
-                return false;
-            }
-            break;
-            
-        case "sort":
-            if (!config.field) {
-                alert("Please select a field to sort by.");
-                return false;
-            }
-            break;
-            
-        case "limit":
-            if (config.count <= 0) {
-                alert("Limit count must be greater than 0.");
-                return false;
-            }
-            if (config.offset < 0) {
-                alert("Offset cannot be negative.");
-                return false;
-            }
-            break;
-            
-        case "calculate":
-            if (!config.calculations || config.calculations.length === 0) {
-                alert("Please add at least one calculation.");
-                return false;
-            }
-            // Validate each calculation
-            for (let calc of config.calculations) {
-                if (!calc.field || !calc.expression) {
-                    alert("Each calculation must have both a field name and expression.");
-                    return false;
-                }
-            }
-            break;
-            
-        case "join":
-            if (!config.joinField) {
-                alert("Please select a field to join on.");
-                return false;
-            }
-            if (config.joinSource === undefined || config.joinSource < 0) {
-                alert("Please select a data source to join with.");
-                return false;
-            }
-            break;
-            
-        case "map":
-            if (!config.mapping || Object.keys(config.mapping).length === 0) {
-                alert("Please add at least one field mapping.");
-                return false;
-            }
-            break;
-            
-        case "distinct":
-            // Distinct can work without field specification (entire object)
-            break;
-            
-        case "count":
-            // Count doesn't require additional validation
-            break;
-            
+        case"sum":
+        case"distinct":
+        case"count":
         default:
-            // Unknown step types are valid by default
             break;
+        case"aggregate":
+            if(!t.operations||0===t.operations.length)return alert("Please add at least one aggregation operation."),!1;
+            break;
+        case"sort":
+            if(!t.field)return alert("Please select a field to sort by."),!1;
+            break;
+        case"limit":
+            if(t.count<=0)return alert("Limit count must be greater than 0."),!1;
+            if(t.offset<0)return alert("Offset cannot be negative."),!1;
+            break;
+        case"calculate":
+            if(!t.calculations||0===t.calculations.length)return alert("Please add at least one calculation."),!1;
+            for(let e of t.calculations)if(!e.field||!e.expression)return alert("Each calculation must have both a field name and expression."),!1;
+            break;
+        case"join":
+            if(!t.joinField)return alert("Please select a field to join on."),!1;
+            if(void 0===t.joinSource||t.joinSource<0)return alert("Please select a data source to join with."),!1;
+            break;
+        case"map":
+            if(!t.mapping||0===Object.keys(t.mapping).length)return alert("Please add at least one field mapping."),!1
     }
-    return true;
+    return!0
 }
 
 // Enhanced editCalcFlowNode function to use the new modal
@@ -2136,7 +2142,7 @@ function renderCalculationFlow() {
         
         n.className = nodeClasses;
         
-        let displayText = t.label || t.type || t.sourceName;
+        let displayText = t.sourceName || t.label || t.type;
         if (t.config && Object.keys(t.config).length > 0) {
             displayText += " ✓";
         }
