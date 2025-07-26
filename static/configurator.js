@@ -1682,36 +1682,42 @@ function deleteCalculation(e) {
     }
 }
 
-function showCalculationBuilder(e = null) {
+function showCalculationBuilder(calcId = null) {
     document.getElementById("calculations-list").innerHTML = "";
-    window.currentCalcId = e;
+    window.currentCalcId = calcId;
     
-    if (e && dashboardState.calculations[e]) {
-        window.currentCalcFlow = JSON.parse(JSON.stringify(dashboardState.calculations[e].flow)) || [];
-        window.currentCalcName = dashboardState.calculations[e].name || "";
-        window.currentCalcDescription = dashboardState.calculations[e].description || "";
+    if (calcId && dashboardState.calculations[calcId]) {
+        // FIXED: Ensure proper deep cloning with all nested properties
+        const calc = dashboardState.calculations[calcId];
+        window.currentCalcFlow = calc.flow ? JSON.parse(JSON.stringify(calc.flow)) : [];
+        window.currentCalcName = calc.name || "";
+        window.currentCalcDescription = calc.description || "";
+        
+        // Debug: Log the loaded flow to verify config is present
+        console.log("Loaded calculation flow:", window.currentCalcFlow);
     } else {
         window.currentCalcFlow = [];
         window.currentCalcName = "";
         window.currentCalcDescription = "";
     }
     
-    renderCalculationsBuilder(e);
+    renderCalculationsBuilder(calcId);
 }
 
-function renderCalculationsBuilder(e = null) {
-    const t = document.getElementById("calculations-list");
-    t.innerHTML = "";
+
+function renderCalculationsBuilder(calcId = null) {
+    const container = document.getElementById("calculations-list");
+    container.innerHTML = "";
     
-    const n = document.createElement("div");
-    n.className = "calculation-builder bg-white dark:bg-gray-800 rounded shadow p-6 flex flex-col";
+    const builder = document.createElement("div");
+    builder.className = "calculation-builder bg-white dark:bg-gray-800 rounded shadow p-6 flex flex-col";
     
-    const r = e !== null;
-    const a = r ? "Edit Calculation" : "Create New Calculation";
+    const isEdit = calcId !== null;
+    const title = isEdit ? "Edit Calculation" : "Create New Calculation";
     
-    n.innerHTML = `
+    builder.innerHTML = `
         <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white">${a}</h3>
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">${title}</h3>
             <button class="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded text-sm" onclick="cancelCalculationBuilder()">
                 <i class="fa fa-times mr-1"></i>Cancel
             </button>
@@ -1753,7 +1759,7 @@ function renderCalculationsBuilder(e = null) {
             <div id="calc-flow-dropzone" class="min-h-[120px] w-full border-2 border-dashed border-blue-400 rounded p-4 bg-blue-50 dark:bg-blue-900/20 flex flex-row gap-4 overflow-x-auto"></div>
             <div class="flex gap-2 mt-4">
                 <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors" onclick="saveCalculationFlow()">
-                    <i class="fa fa-save mr-1"></i>${r ? "Update Calculation" : "Save Calculation"}
+                    <i class="fa fa-save mr-1"></i>${isEdit ? "Update Calculation" : "Save Calculation"}
                 </button>
                 <button class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors" onclick="previewCalculationFlow()">
                     <i class="fa fa-eye mr-1"></i>Preview
@@ -1767,12 +1773,12 @@ function renderCalculationsBuilder(e = null) {
         <div id="calc-flow-preview" class="mt-6"></div>
     `;
     
-    t.appendChild(n);
+    container.appendChild(builder);
     renderCalculationDataSources();
     renderCalculationOperations();
     renderCalculationFlow();
     
-    if (!r) {
+    if (!isEdit) {
         setTimeout(() => {
             document.getElementById("calc-name-input").focus();
         }, 100);
@@ -1852,31 +1858,38 @@ function showTemplateModal(templates) {
 
 function applyTemplate(index) {
     const template = window.templateList[index];
-    if (template) {
-        document.getElementById("calc-name-input").value = template.name;
-        document.getElementById("calc-description-input").value = template.description;
+    if (!template) return;
+    
+    document.getElementById("calc-name-input").value = template.name;
+    document.getElementById("calc-description-input").value = template.description;
+    
+    // FIXED: Properly apply template flow with all configurations
+    window.currentCalcFlow = template.flow.map(step => {
+        if (step.type === "source" && subroutes.length > 0) {
+            const matchingRoute = subroutes.find(route => 
+                route[1].toLowerCase().includes(step.sourceName.toLowerCase())
+            ) || subroutes[0];
+            
+            return {
+                ...step,
+                sourceName: matchingRoute[1],
+                sourceUrl: dashboardSource[3] + matchingRoute[1]
+            };
+        }
         
-        // Apply template flow, updating source URLs
-        window.currentCalcFlow = template.flow.map(step => {
-            if (step.type === "source" && subroutes.length > 0) {
-                // Try to find matching data source or use first available
-                const matchingSource = subroutes.find(route => 
-                    route[1].toLowerCase().includes(step.sourceName.toLowerCase())
-                ) || subroutes[0];
-                
-                return {
-                    ...step,
-                    sourceName: matchingSource[1],
-                    sourceUrl: dashboardSource[3] + matchingSource[1]
-                };
-            }
-            return { ...step };
-        });
-        
-        renderCalculationFlow();
-        closeCustomizationModal();
-    }
+        // FIXED: Ensure config is properly deep-cloned
+        return {
+            ...step,
+            config: step.config ? JSON.parse(JSON.stringify(step.config)) : undefined
+        };
+    });
+    
+    console.log("Applied template flow:", window.currentCalcFlow);
+    
+    renderCalculationFlow();
+    closeCustomizationModal();
 }
+
 
 function cancelCalculationBuilder() {
     window.currentCalcFlow = [];
@@ -1942,78 +1955,131 @@ function handleCalcDragStart(e) {
 
 function handleCalcDrop(e) {
     e.preventDefault();
-    const t = JSON.parse(e.dataTransfer.getData("text/plain"));
+    const data = JSON.parse(e.dataTransfer.getData("text/plain"));
     
     window.currentCalcFlow = window.currentCalcFlow || [];
     
-    if (t.subrouteIdx !== undefined) {
-        const e = subroutes[t.subrouteIdx];
+    if (data.subrouteIdx !== undefined) {
+        const route = subroutes[data.subrouteIdx];
         window.currentCalcFlow.push({
             type: "source",
-            sourceName: e[1],
-            sourceUrl: dashboardSource[3] + e[1]
+            sourceName: route[1],
+            sourceUrl: dashboardSource[3] + route[1]
         });
-    } else if (t.opType) {
-        let e = [];
+    } else if (data.opType) {
+        let inputs = [];
         if (window.currentCalcFlow.length > 0) {
-            e.push(window.currentCalcFlow[window.currentCalcFlow.length - 1]);
+            inputs.push(window.currentCalcFlow[window.currentCalcFlow.length - 1]);
         }
         
-        window.currentCalcFlow.push({
-            type: t.opType,
-            label: t.opType.charAt(0).toUpperCase() + t.opType.slice(1),
-            inputs: e,
-            config: {}
-        });
+        // FIXED: Don't add empty config object - let it be undefined initially
+        const newStep = {
+            type: data.opType,
+            label: data.opType.charAt(0).toUpperCase() + data.opType.slice(1),
+            inputs: inputs
+        };
+        
+        window.currentCalcFlow.push(newStep);
     }
     
     renderCalculationFlow();
 }
 
+
 function renderCalculationFlow() {
     const e = document.getElementById("calc-flow-dropzone");
     e.innerHTML = "";
-    e.addEventListener("dragover", function(e) { e.preventDefault(); });
+    e.addEventListener("dragover", (function(e) { e.preventDefault() }));
     e.addEventListener("drop", handleCalcDrop);
-    
     window.currentCalcFlow = window.currentCalcFlow || [];
     
-    if (window.currentCalcFlow.length !== 0) {
-        window.currentCalcFlow.forEach((t, n) => {
-            const r = document.createElement("div");
-            r.className = "calc-flow-node bg-white dark:bg-gray-700 border border-blue-300 dark:border-blue-700 rounded px-4 py-3 flex flex-col items-center justify-center min-w-[120px] relative shadow-sm cursor-pointer";
-            
-            let a = t.label || t.type || t.sourceName;
-            if (t.config && Object.keys(t.config).length > 0) {
-                a += " ✓";
-            }
-            
-            r.innerHTML = `<span class="font-semibold text-gray-900 dark:text-white">${a}</span>`;
-            
-            if (t.type !== "source" && t.inputs && t.inputs.length) {
-                r.innerHTML += `<div class="text-xs mt-2 text-gray-500 dark:text-gray-400">Inputs: ${t.inputs.map(e => e.sourceName || e.label || e.type).join(", ")}</div>`;
-            }
-            
-            r.innerHTML += `<button class="absolute top-1 right-1 text-red-500 hover:text-red-700 w-6 h-6 flex items-center justify-center" onclick="removeCalcFlowStep(${n})" title="Remove step"><i class="fa fa-times"></i></button>`;
-            
-            r.onclick = function(e) {
-                if (!e.target.closest("button")) {
-                    editCalcFlowNode(n);
-                }
-            };
-            
-            e.appendChild(r);
-            
-            if (n < window.currentCalcFlow.length - 1) {
-                const t = document.createElement("div");
-                t.className = "calc-flow-arrow flex items-center justify-center";
-                t.innerHTML = '<span class="mx-2 text-blue-400 text-xl">→</span>';
-                e.appendChild(t);
-            }
-        });
-    } else {
+    if (window.currentCalcFlow.length === 0) {
         e.innerHTML = '<div class="text-gray-500 dark:text-gray-400 text-center w-full">Drag data sources and operations here to build your calculation</div>';
+        return;
     }
+    
+    window.currentCalcFlow.forEach((step, index) => {
+        const node = document.createElement("div");
+        let nodeClasses = "calc-flow-node bg-white dark:bg-gray-700 border rounded px-4 py-3 flex flex-col items-center justify-center min-w-[120px] relative shadow-sm cursor-pointer";
+        
+        // Determine if step is configured
+        const isConfigured = step.config && Object.keys(step.config).length > 0 && 
+            Object.values(step.config).some(value => {
+                if (Array.isArray(value)) return value.length > 0;
+                if (typeof value === 'object' && value !== null) return Object.keys(value).length > 0;
+                return value !== "" && value != null;
+            });
+        
+        if (isConfigured) {
+            nodeClasses += " border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/20";
+        } else if (step.type !== "source") {
+            nodeClasses += " border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20";
+        } else {
+            nodeClasses += " border-blue-300 dark:border-blue-700";
+        }
+        
+        node.className = nodeClasses;
+        
+        let displayText = step.label || step.type || step.sourceName;
+        if (isConfigured) {
+            displayText += " ✓";
+        } else if (step.type !== "source") {
+            displayText += " ⚠";
+        }
+        
+        node.innerHTML = `<span class="font-semibold text-gray-900 dark:text-white text-center">${displayText}</span>`;
+        
+        // Show configuration summary for configured steps
+        if (isConfigured && step.config) {
+            let configSummary = "";
+            switch(step.type) {
+                case "filter":
+                    configSummary = `${step.config.field} ${step.config.operator} ${step.config.value}`;
+                    break;
+                case "group":
+                    configSummary = `by ${step.config.field}`;
+                    break;
+                case "sort":
+                    configSummary = `by ${step.config.field} (${step.config.direction})`;
+                    break;
+                case "limit":
+                    configSummary = `${step.config.count} items`;
+                    break;
+                case "aggregate":
+                    configSummary = `${step.config.operations?.length || 0} ops`;
+                    break;
+                case "calculate":
+                    configSummary = `${step.config.calculations?.length || 0} calcs`;
+                    break;
+                default:
+                    configSummary = "configured";
+            }
+            if (configSummary) {
+                node.innerHTML += `<div class="text-xs mt-1 text-gray-600 dark:text-gray-400 text-center">${configSummary}</div>`;
+            }
+        }
+        
+        if (step.type !== "source" && step.inputs && step.inputs.length) {
+            node.innerHTML += `<div class="text-xs mt-2 text-gray-500 dark:text-gray-400 text-center">Inputs: ${step.inputs.map(e => e.sourceName || e.label || e.type).join(", ")}</div>`;
+        }
+        
+        node.innerHTML += `<button class="absolute top-1 right-1 text-red-500 hover:text-red-700 w-6 h-6 flex items-center justify-center" onclick="removeCalcFlowStep(${index})" title="Remove step"><i class="fa fa-times"></i></button>`;
+        
+        node.onclick = function(event) {
+            if (!event.target.closest("button")) {
+                editCalcFlowNode(index);
+            }
+        };
+        
+        e.appendChild(node);
+        
+        if (index < window.currentCalcFlow.length - 1) {
+            const arrow = document.createElement("div");
+            arrow.className = "calc-flow-arrow flex items-center justify-center";
+            arrow.innerHTML = '<span class="mx-2 text-blue-400 text-xl">→</span>';
+            e.appendChild(arrow);
+        }
+    });
 }
 
 function removeCalcFlowStep(e) {
@@ -2027,17 +2093,17 @@ function previewCalculationFlow() {
 }
 
 async function saveCalculationFlow() {
-    const e = document.getElementById("calc-name-input");
-    const t = e.value.trim();
+    const nameInput = document.getElementById("calc-name-input");
+    const name = nameInput.value.trim();
     const description = document.getElementById("calc-description-input").value.trim();
     
-    if (!t) {
+    if (!name) {
         alert("Please enter a name for the calculation.");
-        e.focus();
+        nameInput.focus();
         return;
     }
     
-    const success = await executeCalculationFlow(true, t, description);
+    const success = await executeCalculationFlow(true, name, description);
     if (success) {
         window.currentCalcFlow = [];
         window.currentCalcName = "";
@@ -2048,7 +2114,7 @@ async function saveCalculationFlow() {
 }
 
 async function executeCalculationFlow(save = false, name = "", description = "") {
-    const n = document.getElementById("calc-flow-preview");
+    const preview = document.getElementById("calc-flow-preview");
     let result = null;
     let error = null;
     
@@ -2071,7 +2137,6 @@ async function executeCalculationFlow(save = false, name = "", description = "")
                 data = await processCalculationStep(step, data);
             }
         }
-        
         result = data;
     } catch (e) {
         error = e.message;
@@ -2080,12 +2145,12 @@ async function executeCalculationFlow(save = false, name = "", description = "")
     
     const borderClass = error ? "border-red-200 bg-red-50 dark:bg-red-900/20" : "border-green-200 bg-green-50 dark:bg-green-900/20";
     
-    n.innerHTML = `
+    preview.innerHTML = `
         <div class="p-4 border rounded ${borderClass}">
             <strong class="text-gray-900 dark:text-white">Calculation Steps:</strong><br>
-            ${window.currentCalcFlow.map((e, t) => `${t + 1}. ${e.label || e.type || e.sourceName}`).join("<br>")}
+            ${window.currentCalcFlow.map((step, i) => `${i + 1}. ${step.label || step.type || step.sourceName}`).join("<br>")}
             ${error ? 
-                `<div class="mt-4 text-red-600 dark:text-red-400"><strong>Error:</strong> ${error}</div>` : 
+                `<div class="mt-4 text-red-600 dark:text-red-400"><strong>Error:</strong> ${error}</div>` :
                 `<div class="mt-4">
                     <strong class="text-gray-900 dark:text-white">Result Preview:</strong>
                     <pre class="bg-white dark:bg-gray-900 p-2 rounded text-xs mt-2 border overflow-auto max-h-48">${JSON.stringify(result, null, 2)}</pre>
@@ -2098,10 +2163,11 @@ async function executeCalculationFlow(save = false, name = "", description = "")
         dashboardState.calculations = dashboardState.calculations || {};
         const calcId = window.currentCalcId || "calc_" + Date.now();
         
+        // FIXED: Ensure we save the complete flow with all configurations
         dashboardState.calculations[calcId] = {
             name: name,
             description: description,
-            flow: JSON.parse(JSON.stringify(window.currentCalcFlow)),
+            flow: JSON.parse(JSON.stringify(window.currentCalcFlow)), // Deep clone to preserve configs
             result: result,
             lastModified: Date.now()
         };
@@ -2222,6 +2288,7 @@ function processGroupBy(step, data) {
 
 function processCount(step, data) {
     const config = step.config || {};
+    console.log(step)
     
     if (Array.isArray(data)) {
         return data.length;
@@ -2233,8 +2300,11 @@ function processCount(step, data) {
         } else if (config.countType === "items_per_group") {
             const result = {};
             Object.entries(data).forEach(([key, value]) => {
-                result[key] = Array.isArray(value) ? value.length : 0;
+                if (Array.isArray(value)) {
+                    result[key] = value.length;
+                }
             });
+            console.log(result)
             return result;
         }
         
@@ -2559,7 +2629,6 @@ function editCalcFlowNode(index) {
 
 async function showNodeConfigModal(step, stepIndex) {
     let inputData = null;
-    
     try {
         if (stepIndex > 0) {
             inputData = await getInputDataForStep(stepIndex);
@@ -2900,13 +2969,13 @@ function closeCustomizationModal() {
     window.currentEditingStep = null;
 }
 
-function applyCustomization() {
-    if (!window.currentEditingStep) return;
+function applyCalcCustomization(){
+    if(!window.currentEditingStep) return;
     
-    const { step, stepIndex } = window.currentEditingStep;
+    const {step, stepIndex} = window.currentEditingStep;
     const config = {};
     
-    switch (step.type) {
+    switch(step.type) {
         case "filter":
             config.field = document.getElementById("filter-field").value;
             config.operator = document.getElementById("filter-operator").value;
@@ -2919,9 +2988,14 @@ function applyCustomization() {
             break;
             
         case "count":
-            const countType = document.getElementById("count-type");
-            if (countType) {
-                config.countType = countType.value;
+            // FIX: This was the problem - the count-type element wasn't being found properly
+            const countTypeElement = document.getElementById("count-type");
+            if (countTypeElement) {
+                config.countType = countTypeElement.value;
+            }
+            // Add a fallback for when there's no count-type selector (for simple arrays)
+            else {
+                config.countType = "items"; // default for array counting
             }
             break;
             
@@ -2931,12 +3005,10 @@ function applyCustomization() {
             
         case "aggregate":
             const operations = [];
-            const opContainers = document.querySelectorAll("#aggregate-operations > div");
-            opContainers.forEach(container => {
-                const type = container.querySelector(".operation-type").value;
-                const field = container.querySelector(".operation-field").value;
-                const alias = container.querySelector(".operation-alias").value;
-                
+            document.querySelectorAll("#aggregate-operations > div").forEach(opDiv => {
+                const type = opDiv.querySelector(".operation-type").value;
+                const field = opDiv.querySelector(".operation-field").value;
+                const alias = opDiv.querySelector(".operation-alias").value;
                 if (type) {
                     operations.push({
                         type: type,
@@ -2964,12 +3036,10 @@ function applyCustomization() {
             
         case "calculate":
             const calculations = [];
-            const calcContainers = document.querySelectorAll("#calculated-fields > div");
-            calcContainers.forEach(container => {
-                const field = container.querySelector(".calc-field").value;
-                const expression = container.querySelector(".calc-expression").value;
-                const alias = container.querySelector(".calc-alias").value;
-                
+            document.querySelectorAll("#calculated-fields > div").forEach(calcDiv => {
+                const field = calcDiv.querySelector(".calc-field").value;
+                const expression = calcDiv.querySelector(".calc-expression").value;
+                const alias = calcDiv.querySelector(".calc-alias").value;
                 if (field && expression) {
                     calculations.push({
                         field: field,
@@ -3001,7 +3071,10 @@ function applyCustomization() {
             break;
     }
     
+    // Apply the config to the step
     window.currentCalcFlow[stepIndex].config = config;
+    console.log("Applied config to step:", window.currentCalcFlow[stepIndex]);
+    
     renderCalculationFlow();
     closeCustomizationModal();
 }
@@ -3101,21 +3174,21 @@ function generateGroupByForm(config, inputData) {
 }
 
 function generateCountForm(config, inputData) {
-    const isGrouped = inputData && typeof inputData === "object" && !Array.isArray(inputData);
-    const isArray = Array.isArray(inputData);
+    const isGroupedData = inputData && typeof inputData === 'object' && !Array.isArray(inputData);
+    const isArrayData = Array.isArray(inputData);
     
     return `
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Input Data Preview</h4>
-                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto">${inputData ? JSON.stringify(isArray ? inputData.slice(0, 3) : Object.fromEntries(Object.entries(inputData).slice(0, 3)), null, 2) : "No data"}</pre>
-                ${isGrouped ? '<p class="text-xs text-blue-600 dark:text-blue-400 mt-1">✓ Grouped data detected</p>' : ""}
-                ${isArray ? '<p class="text-xs text-green-600 dark:text-green-400 mt-1">✓ Array data detected</p>' : ""}
+                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto">${inputData ? JSON.stringify(isArrayData ? inputData.slice(0,3) : Object.fromEntries(Object.entries(inputData).slice(0,3)), null, 2) : "No data"}</pre>
+                ${isGroupedData ? '<p class="text-xs text-blue-600 dark:text-blue-400 mt-1">✓ Grouped data detected</p>' : ''}
+                ${isArrayData ? '<p class="text-xs text-green-600 dark:text-green-400 mt-1">✓ Array data detected</p>' : ''}
             </div>
             <div>
                 <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Configuration</h4>
                 <div class="space-y-3">
-                    ${isGrouped ? `
+                    ${isGroupedData ? `
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Count Type</label>
                         <select id="count-type" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
@@ -3130,11 +3203,17 @@ function generateCountForm(config, inputData) {
                         </div>
                     </div>
                     ` : `
-                    <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded">
-                        <p class="text-sm text-blue-800 dark:text-blue-200">
-                            <i class="fa fa-info-circle mr-1"></i>
-                            This will count the number of items in the array.
-                        </p>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Count Type</label>
+                        <select id="count-type" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
+                            <option value="items" ${config.countType === "items" ? "selected" : ""}>Count Array Items</option>
+                        </select>
+                        <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded mt-2">
+                            <p class="text-sm text-blue-800 dark:text-blue-200">
+                                <i class="fa fa-info-circle mr-1"></i>
+                                This will count the number of items in the array.
+                            </p>
+                        </div>
                     </div>
                     `}
                 </div>

@@ -229,17 +229,77 @@
                     config.operator = document.getElementById("filter-operator")?.value || "equals";
                     config.value = document.getElementById("filter-value")?.value || "";
                     break;
+                    
                 case "group":
                     config.field = document.getElementById("group-field")?.value || "";
+                    config.outputFormat = document.getElementById("group-output-format")?.value || "object";
                     break;
+                    
+                case "count":
+                    const countTypeElement = document.getElementById("count-type");
+                    config.countType = countTypeElement?.value || "items";
+                    break;
+                    
                 case "sum":
                     config.field = document.getElementById("sum-field")?.value || "";
                     break;
+                    
+                case "aggregate":
+                    const operations = [];
+                    document.querySelectorAll("#aggregate-operations > div").forEach(operationDiv => {
+                        const type = operationDiv.querySelector(".operation-type")?.value;
+                        const field = operationDiv.querySelector(".operation-field")?.value;
+                        const alias = operationDiv.querySelector(".operation-alias")?.value;
+                        
+                        if (type) {
+                            operations.push({
+                                type: type,
+                                field: field || undefined,
+                                alias: alias || undefined
+                            });
+                        }
+                    });
+                    config.operations = operations;
+                    break;
+                    
+                case "sort":
+                    config.field = document.getElementById("sort-field")?.value || "";
+                    config.direction = document.getElementById("sort-direction")?.value || "asc";
+                    break;
+                    
+                case "limit":
+                    config.count = parseInt(document.getElementById("limit-count")?.value) || 10;
+                    config.offset = parseInt(document.getElementById("limit-offset")?.value) || 0;
+                    break;
+                    
+                case "distinct":
+                    config.field = document.getElementById("distinct-field")?.value || undefined;
+                    break;
+                    
+                case "calculate":
+                    const calculations = [];
+                    document.querySelectorAll("#calculated-fields > div").forEach(calcDiv => {
+                        const field = calcDiv.querySelector(".calc-field")?.value;
+                        const expression = calcDiv.querySelector(".calc-expression")?.value;
+                        const alias = calcDiv.querySelector(".calc-alias")?.value;
+                        
+                        if (field && expression) {
+                            calculations.push({
+                                field: field,
+                                expression: expression,
+                                alias: alias || undefined
+                            });
+                        }
+                    });
+                    config.calculations = calculations;
+                    break;
+                    
                 case "join":
                     config.joinField = document.getElementById("join-field")?.value || "";
                     config.joinSource = parseInt(document.getElementById("join-source")?.value) || 0;
                     config.joinType = document.getElementById("join-type")?.value || "inner";
                     break;
+                    
                 case "map":
                     const mappings = {};
                     const newFields = document.querySelectorAll(".field-mapping-new");
@@ -254,11 +314,15 @@
                     
                     config.mapping = mappings;
                     break;
+                    
+                default:
+                    // For unknown types, don't collect any config
+                    break;
             }
             
             return config;
         }
-
+        
         function applyNodeConfiguration() {
             if (!window.currentEditingStep) return;
             
@@ -273,10 +337,14 @@
             // Update the step configuration
             window.currentCalcFlow[stepIndex].config = config;
             
-            // Add configured class for visual feedback
+            // Mark as configured for visual feedback
             window.currentCalcFlow[stepIndex].configured = true;
             
-            // Re-render the flow
+            // Log for debugging
+            console.log(`Applied configuration to step ${stepIndex}:`, config);
+            console.log("Updated step:", window.currentCalcFlow[stepIndex]);
+            
+            // Re-render the flow to show updated configuration
             renderCalculationFlow();
             
             // Close modal
@@ -290,17 +358,62 @@
                         alert("Please select a field to filter by.");
                         return false;
                     }
-                    if (config.value === "") {
+                    if (config.value === "" && config.operator !== "is_null" && config.operator !== "is_not_null") {
                         alert("Please enter a value to filter by.");
                         return false;
                     }
                     break;
+                    
                 case "group":
                     if (!config.field) {
                         alert("Please select a field to group by.");
                         return false;
                     }
                     break;
+                    
+                case "sum":
+                    // Sum can work with auto-detection if no field specified
+                    break;
+                    
+                case "aggregate":
+                    if (!config.operations || config.operations.length === 0) {
+                        alert("Please add at least one aggregation operation.");
+                        return false;
+                    }
+                    break;
+                    
+                case "sort":
+                    if (!config.field) {
+                        alert("Please select a field to sort by.");
+                        return false;
+                    }
+                    break;
+                    
+                case "limit":
+                    if (config.count <= 0) {
+                        alert("Limit count must be greater than 0.");
+                        return false;
+                    }
+                    if (config.offset < 0) {
+                        alert("Offset cannot be negative.");
+                        return false;
+                    }
+                    break;
+                    
+                case "calculate":
+                    if (!config.calculations || config.calculations.length === 0) {
+                        alert("Please add at least one calculation.");
+                        return false;
+                    }
+                    // Validate each calculation
+                    for (let calc of config.calculations) {
+                        if (!calc.field || !calc.expression) {
+                            alert("Each calculation must have both a field name and expression.");
+                            return false;
+                        }
+                    }
+                    break;
+                    
                 case "join":
                     if (!config.joinField) {
                         alert("Please select a field to join on.");
@@ -311,11 +424,24 @@
                         return false;
                     }
                     break;
+                    
                 case "map":
                     if (!config.mapping || Object.keys(config.mapping).length === 0) {
                         alert("Please add at least one field mapping.");
                         return false;
                     }
+                    break;
+                    
+                case "distinct":
+                    // Distinct can work without field specification (entire object)
+                    break;
+                    
+                case "count":
+                    // Count doesn't require additional validation
+                    break;
+                    
+                default:
+                    // Unknown step types are valid by default
                     break;
             }
             return true;
