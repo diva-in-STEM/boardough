@@ -393,6 +393,7 @@ async function saveCalculationFlow() {
         window.currentCalcDescription = "";
         window.currentCalcId = null;
         renderCalculationsList();
+        saveDashboard(JSON.parse(document.getElementById("dashboard-info").innerText)[0])
     }
 }
 
@@ -1085,7 +1086,7 @@ function generateChartForm(config, inputData) {
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Input Data Preview</h4>
-                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto">${
+                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto dark:text-white">${
                     inputData ? JSON.stringify(Array.isArray(data) ? data.slice(0, 3) : data, null, 2) : "No data"
                 }</pre>
                 <div class="mt-2 text-xs text-gray-600 dark:text-gray-400">
@@ -1160,7 +1161,7 @@ function generateChartForm(config, inputData) {
                 </div>
                 <div class="mt-4">
                     <h5 class="font-medium mb-2 text-gray-900 dark:text-white">Preview Result</h5>
-                    <div id="node-preview" class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-32 overflow-auto">Configure fields to see preview</div>
+                    <div id="node-preview" class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-32 overflow-auto dark:text-white">Configure fields to see preview</div>
                 </div>
             </div>
         </div>
@@ -1176,7 +1177,7 @@ function generateAggregateForm(config, inputData) {
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Input Data Preview</h4>
-                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto">${inputData ? JSON.stringify(inputData.slice(0, 3), null, 2) : "No data"}</pre>
+                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto dark:text-white">${inputData ? JSON.stringify(inputData.slice(0, 3), null, 2) : "No data"}</pre>
             </div>
             <div>
                 <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Aggregation Operations</h4>
@@ -1210,7 +1211,7 @@ function generateAggregateForm(config, inputData) {
                 </button>
                 <div class="mt-4">
                     <h5 class="font-medium mb-2 text-gray-900 dark:text-white">Preview Result</h5>
-                    <div id="node-preview" class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-32 overflow-auto">Configure operations to see preview</div>
+                    <div id="node-preview" class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-32 overflow-auto dark:text-white">Configure operations to see preview</div>
                 </div>
             </div>
         </div>
@@ -1225,7 +1226,7 @@ function generateSortForm(config, inputData) {
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Input Data Preview</h4>
-                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto">${inputData ? JSON.stringify(inputData.slice(0, 3), null, 2) : "No data"}</pre>
+                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto dark:text-white">${inputData ? JSON.stringify(inputData.slice(0, 3), null, 2) : "No data"}</pre>
             </div>
             <div>
                 <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Configuration</h4>
@@ -1257,7 +1258,7 @@ function generateLimitForm(config, inputData) {
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Input Data Preview</h4>
-                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto">${inputData ? JSON.stringify(inputData.slice(0, 3), null, 2) : "No data"}</pre>
+                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto dark:text-white">${inputData ? JSON.stringify(inputData.slice(0, 3), null, 2) : "No data"}</pre>
                 ${dataLength > 0 ? `<p class="text-xs text-blue-600 dark:text-blue-400 mt-1">Total items: ${dataLength}</p>` : ""}
             </div>
             <div>
@@ -1287,7 +1288,7 @@ function generateDistinctForm(config, inputData) {
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Input Data Preview</h4>
-                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto">${inputData ? JSON.stringify(inputData.slice(0, 3), null, 2) : "No data"}</pre>
+                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto dark:text-white">${inputData ? JSON.stringify(inputData.slice(0, 3), null, 2) : "No data"}</pre>
             </div>
             <div>
                 <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Configuration</h4>
@@ -1317,7 +1318,7 @@ function generateCalculateForm(config, inputData) {
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Input Data Preview</h4>
-                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto">${inputData ? JSON.stringify(inputData.slice(0, 3), null, 2) : "No data"}</pre>
+                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto dark:text-white">${inputData ? JSON.stringify(inputData.slice(0, 3), null, 2) : "No data"}</pre>
                 <div class="mt-2 text-xs text-gray-600 dark:text-gray-400">
                     <strong>Available fields:</strong> ${fields.join(", ")}
                 </div>
@@ -1552,7 +1553,7 @@ function generateFilterForm(config, inputData) {
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Input Data Preview</h4>
-                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto">${inputData ? JSON.stringify(inputData.slice(0, 3), null, 2) : "No data"}</pre>
+                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto dark:text-white">${inputData ? JSON.stringify(inputData.slice(0, 3), null, 2) : "No data"}</pre>
             </div>
             <div>
                 <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Configuration</h4>
@@ -1589,7 +1590,7 @@ function generateFilterForm(config, inputData) {
                 </div>
                 <div class="mt-4">
                     <h5 class="font-medium mb-2 text-gray-900 dark:text-white">Preview Result</h5>
-                    <div id="node-preview" class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-32 overflow-auto">Configure and preview will appear here</div>
+                    <div id="node-preview" class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-32 overflow-auto dark:text-white">Configure and preview will appear here</div>
                 </div>
             </div>
         </div>
@@ -1604,7 +1605,7 @@ function generateGroupByForm(config, inputData) {
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Input Data Preview</h4>
-                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto">${inputData ? JSON.stringify(inputData.slice(0, 3), null, 2) : "No data"}</pre>
+                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto dark:text-white">${inputData ? JSON.stringify(inputData.slice(0, 3), null, 2) : "No data"}</pre>
             </div>
             <div>
                 <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Configuration</h4>
@@ -1629,7 +1630,7 @@ function generateGroupByForm(config, inputData) {
                 </div>
                 <div class="mt-4">
                     <h5 class="font-medium mb-2 text-gray-900 dark:text-white">Preview Result</h5>
-                    <div id="node-preview" class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-32 overflow-auto">Configure and preview will appear here</div>
+                    <div id="node-preview" class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-32 overflow-auto dark:text-white">Configure and preview will appear here</div>
                 </div>
             </div>
         </div>
@@ -1644,7 +1645,7 @@ function generateCountForm(config, inputData) {
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Input Data Preview</h4>
-                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto">${inputData ? JSON.stringify(isArrayData ? inputData.slice(0,3) : Object.fromEntries(Object.entries(inputData).slice(0,3)), null, 2) : "No data"}</pre>
+                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto dark:text-white ">${inputData ? JSON.stringify(isArrayData ? inputData.slice(0,3) : Object.fromEntries(Object.entries(inputData).slice(0,3)), null, 2) : "No data"}</pre>
                 ${isGroupedData ? '<p class="text-xs text-blue-600 dark:text-blue-400 mt-1">✓ Grouped data detected</p>' : ''}
                 ${isArrayData ? '<p class="text-xs text-green-600 dark:text-green-400 mt-1">✓ Array data detected</p>' : ''}
             </div>
@@ -1682,7 +1683,7 @@ function generateCountForm(config, inputData) {
                 </div>
                 <div class="mt-4">
                     <h5 class="font-medium mb-2 text-gray-900 dark:text-white">Preview Result</h5>
-                    <div id="node-preview" class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-32 overflow-auto">Configure and preview will appear here</div>
+                    <div id="node-preview" class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-32 overflow-auto dark:text-white">Configure and preview will appear here</div>
                 </div>
             </div>
         </div>
@@ -1697,7 +1698,7 @@ function generateSumForm(config, inputData) {
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Input Data Preview</h4>
-                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto">${inputData ? JSON.stringify(inputData.slice(0, 3), null, 2) : "No data"}</pre>
+                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto dark:text-white">${inputData ? JSON.stringify(inputData.slice(0, 3), null, 2) : "No data"}</pre>
             </div>
             <div>
                 <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Configuration</h4>
@@ -1712,7 +1713,7 @@ function generateSumForm(config, inputData) {
                 </div>
                 <div class="mt-4">
                     <h5 class="font-medium mb-2 text-gray-900 dark:text-white">Preview Result</h5>
-                    <div id="node-preview" class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-32 overflow-auto">Configure and preview will appear here</div>
+                    <div id="node-preview" class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-32 overflow-auto dark:text-white">Configure and preview will appear here</div>
                 </div>
             </div>
         </div>
@@ -1727,7 +1728,7 @@ function generateJoinForm(config, inputData) {
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Input Data Preview</h4>
-                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto">${inputData ? JSON.stringify(inputData.slice(0, 3), null, 2) : "No data"}</pre>
+                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto dark:text-white">${inputData ? JSON.stringify(inputData.slice(0, 3), null, 2) : "No data"}</pre>
             </div>
             <div>
                 <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Configuration</h4>
@@ -1757,7 +1758,7 @@ function generateJoinForm(config, inputData) {
                 </div>
                 <div class="mt-4">
                     <h5 class="font-medium mb-2 text-gray-900 dark:text-white">Preview Result</h5>
-                    <div id="node-preview" class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-32 overflow-auto">Configure and preview will appear here</div>
+                    <div id="node-preview" class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-32 overflow-auto dark:text-white">Configure and preview will appear here</div>
                 </div>
             </div>
         </div>
@@ -1772,7 +1773,7 @@ function generateMapForm(config, inputData) {
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Input Data Preview</h4>
-                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto">${inputData ? JSON.stringify(inputData.slice(0, 3), null, 2) : "No data"}</pre>
+                <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-48 overflow-auto dark:text-white">${inputData ? JSON.stringify(inputData.slice(0, 3), null, 2) : "No data"}</pre>
             </div>
             <div>
                 <h4 class="font-semibold mb-2 text-gray-900 dark:text-white">Configuration</h4>
@@ -1802,7 +1803,7 @@ function generateMapForm(config, inputData) {
                 </div>
                 <div class="mt-4">
                     <h5 class="font-medium mb-2 text-gray-900 dark:text-white">Preview Result</h5>
-                    <div id="node-preview" class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-32 overflow-auto">Configure and preview will appear here</div>
+                    <div id="node-preview" class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-xs max-h-32 overflow-auto dark:text-white">Configure and preview will appear here</div>
                 </div>
             </div>
         </div>

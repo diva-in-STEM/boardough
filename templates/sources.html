@@ -17,32 +17,32 @@
         }
     </script>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900">
+<body class="min-h-screen font-sans-custom dark:bg-gray-700">
     <!-- New Dashboard Modal -->
-    <div id="new_dash_modal" data-modal-placement="center" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50">
+    <div id="new_dash_modal" data-modal-placement="center" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50 backdrop-blur-sm">
         <div class="relative p-4 w-full max-w-md max-h-full">
-            <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
-                <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Create a new dashboard</h3>
-                    <button type="button" onclick="document.getElementById('new_dash_modal').classList.add('hidden')" class="hover:cursor-pointer text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
+            <div class="relative modal-card dark:modal-card-dark rounded-2xl shadow-2xl thin-border border-gray-200/60 dark:border-gray-600/40 dark:bg-gray-800">
+                <div class="flex items-center justify-between p-6 border-b rounded-t border-gray-200/60 dark:border-gray-600/40 dark:bg-gray-800">
+                    <h3 class="text-xl font-semibold font-serif-custom text-gray-900 dark:text-white">Create a new dashboard</h3>
+                    <button type="button" onclick="document.getElementById('new_dash_modal').classList.add('hidden')" class="hover:cursor-pointer text-gray-400 bg-transparent hover:bg-gray-200/50 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600/50 dark:hover:text-white transition-all duration-200">
                         <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
                         </svg>
                     </button>
                 </div>
-                <form method="post" action="/api/create/dashboard" class="p-4 md:p-5">
-                    <div class="grid gap-4 mb-4">
+                <form method="post" action="/api/create/dashboard" class="p-6">
+                    <div class="grid gap-5 mb-6">
                         <div>
-                            <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name</label>
-                            <input type="text" name="name" id="name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="New Dash" required="">
+                            <label for="name" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+                            <input type="text" name="name" id="name" class="input-thin bg-gray-50/50 border border-gray-300/60 text-gray-900 text-sm rounded-lg focus:ring-amber-500 focus:border-amber-500 block w-full p-3 dark:bg-gray-600/50 dark:border-gray-500/60 dark:placeholder-gray-400 dark:text-white dark:focus:ring-amber-500 dark:focus:border-amber-500 transition-all duration-200" placeholder="New Dash" required="">
                         </div>
                         <div>
-                            <label for="description" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>
-                            <input type="text" name="description" id="description" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="A super cool dashboard" required="">
+                            <label for="description" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                            <input type="text" name="description" id="description" class="input-thin bg-gray-50/50 border border-gray-300/60 text-gray-900 text-sm rounded-lg focus:ring-amber-500 focus:border-amber-500 block w-full p-3 dark:bg-gray-600/50 dark:border-gray-500/60 dark:placeholder-gray-400 dark:text-white dark:focus:ring-amber-500 dark:focus:border-amber-500 transition-all duration-200" placeholder="A super cool dashboard" required="">
                         </div>
                         <div>
-                            <label for="api" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Source API</label>
-                            <select name="api" id="api" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                            <label for="api" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Source API</label>
+                            <select name="api" id="api" class="input-thin bg-gray-50/50 border border-gray-300/60 text-gray-900 text-sm rounded-lg focus:ring-amber-500 focus:border-amber-500 block w-full p-3 dark:bg-gray-600/50 dark:border-gray-500/60 dark:placeholder-gray-400 dark:text-white dark:focus:ring-amber-500 dark:focus:border-amber-500 transition-all duration-200">
                                 <option selected="">Select source API</option>
                                 {% for source in sources %}
                                 <option value="{{ source[2] }}">{{ source[2] }}</option>
@@ -50,7 +50,7 @@
                             </select>
                         </div>
                     </div>
-                    <button type="submit" class="hover:cursor-pointer text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                    <button type="submit" class="hover:cursor-pointer text-white inline-flex items-center bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 focus:ring-4 focus:outline-none focus:ring-amber-300 font-medium rounded-lg text-sm px-6 py-3 text-center dark:focus:ring-amber-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                         <i class="fa-solid fa-plus me-2"></i>Create
                     </button>
                 </form>
@@ -59,38 +59,38 @@
     </div>
 
     <!-- Add Source Modal -->
-    <div id="add_source_modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50">
+    <div id="add_source_modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50 backdrop-blur-sm">
         <div class="relative p-4 w-full max-w-2xl max-h-full">
-            <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
-                <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Add a new source</h3>
-                    <button type="button" onclick="document.getElementById('add_source_modal').classList.add('hidden')" class="hover:cursor-pointer text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
+            <div class="relative modal-card dark:modal-card-dark rounded-2xl shadow-2xl thin-border border-gray-200/60 dark:border-gray-600/40 dark:bg-gray-800">
+                <div class="flex items-center justify-between p-6 border-b rounded-t border-gray-200/60 dark:border-gray-600/40 dark:bg-gray-800">
+                    <h3 class="text-xl font-semibold font-serif-custom text-gray-900 dark:text-white">Add a new source</h3>
+                    <button type="button" onclick="document.getElementById('add_source_modal').classList.add('hidden')" class="hover:cursor-pointer text-gray-400 bg-transparent hover:bg-gray-200/50 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600/50 dark:hover:text-white transition-all duration-200">
                         <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
                         </svg>
                     </button>
                 </div>
-                <form method="post" action="/api/create/source" class="p-4 md:p-5">
+                <form method="post" action="/api/create/source" class="p-6">
                     <!-- Steps Navigation -->
-                    <ol id="steps" class="flex items-center w-full mb-4 sm:mb-5">
-                        <li class="flex w-full items-center text-blue-600 dark:text-blue-500">
-                            <div class="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full lg:h-12 lg:w-12 dark:bg-blue-800 shrink-0">
-                                <svg class="w-4 h-4 text-blue-600 lg:w-6 lg:h-6 dark:text-blue-300" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <ol id="steps" class="flex items-center w-full mb-6">
+                        <li class="flex w-full items-center text-amber-600 dark:text-amber-500">
+                            <div class="flex items-center justify-center w-10 h-10 bg-amber-100 rounded-full lg:h-12 lg:w-12 dark:bg-amber-800 shrink-0">
+                                <svg class="w-4 h-4 text-amber-600 lg:w-6 lg:h-6 dark:text-amber-300" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
                                 </svg>
                             </div>
-                            <div class="step-connector w-full h-1 border-b border-gray-100 border-4 ml-4 dark:border-gray-700"></div>
+                            <div class="step-connector w-full h-1 border-b border-gray-200/60 border-4 ml-4 dark:border-gray-700/60 dark:bg-gray-800"></div>
                         </li>
                         <li class="flex w-full items-center">
-                            <div class="flex items-center justify-center w-10 h-10 bg-gray-100 rounded-full lg:h-12 lg:w-12 dark:bg-gray-700 shrink-0">
+                            <div class="flex items-center justify-center w-10 h-10 bg-gray-100/60 rounded-full lg:h-12 lg:w-12 dark:bg-gray-700/60 shrink-0">
                                 <svg class="w-4 h-4 text-gray-500 lg:w-6 lg:h-6 dark:text-gray-100" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
                                 </svg>
                             </div>
-                            <div class="step-connector w-full h-1 border-b border-gray-100 border-4 ml-4 dark:border-gray-700"></div>
+                            <div class="step-connector w-full h-1 border-b border-gray-200/60 border-4 ml-4 dark:border-gray-700/60 dark:bg-gray-800"></div>
                         </li>
                         <li class="flex items-center">
-                            <div class="flex items-center justify-center w-10 h-10 bg-gray-100 rounded-full lg:h-12 lg:w-12 dark:bg-gray-700 shrink-0">
+                            <div class="flex items-center justify-center w-10 h-10 bg-gray-100/60 rounded-full lg:h-12 lg:w-12 dark:bg-gray-700/60 shrink-0">
                                 <svg class="w-4 h-4 text-gray-500 lg:w-6 lg:h-6 dark:text-gray-100" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
                                 </svg>
@@ -100,14 +100,14 @@
 
                     <!-- Step 1: Basic Info -->
                     <div class="step-page" data-step="0">
-                        <div class="grid gap-4 mb-4">
+                        <div class="grid gap-5 mb-6">
                             <div>
-                                <label for="source_name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Source Name</label>
-                                <input type="text" name="name" id="source_name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="New Source" required="">
+                                <label for="source_name" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Source Name</label>
+                                <input type="text" name="name" id="source_name" class="input-thin bg-gray-50/50 border border-gray-300/60 text-gray-900 text-sm rounded-lg focus:ring-amber-500 focus:border-amber-500 block w-full p-3 dark:bg-gray-600/50 dark:border-gray-500/60 dark:placeholder-gray-400 dark:text-white dark:focus:ring-amber-500 dark:focus:border-amber-500 transition-all duration-200" placeholder="New Source" required="">
                             </div>
                             <div>
-                                <label for="source_route" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Source Route</label>
-                                <input type="text" name="route" id="source_route" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="api.website.com" required="">
+                                <label for="source_route" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Source Route</label>
+                                <input type="text" name="route" id="source_route" class="input-thin bg-gray-50/50 border border-gray-300/60 text-gray-900 text-sm rounded-lg focus:ring-amber-500 focus:border-amber-500 block w-full p-3 dark:bg-gray-600/50 dark:border-gray-500/60 dark:placeholder-gray-400 dark:text-white dark:focus:ring-amber-500 dark:focus:border-amber-500 transition-all duration-200" placeholder="api.website.com" required="">
                             </div>
                         </div>
                     </div>
@@ -116,11 +116,11 @@
                     <div class="step-page hidden" data-step="1">
                         <div id="subroutes" class="grid gap-4 mb-4 max-h-60 overflow-y-auto">
                             <div>
-                                <label for="subroute1" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Subroute 1</label>
-                                <input type="text" name="subroute1" id="subroute1" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="/data/posts">
+                                <label for="subroute1" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Subroute 1</label>
+                                <input type="text" name="subroute1" id="subroute1" class="input-thin bg-gray-50/50 border border-gray-300/60 text-gray-900 text-sm rounded-lg focus:ring-amber-500 focus:border-amber-500 block w-full p-3 dark:bg-gray-600/50 dark:border-gray-500/60 dark:placeholder-gray-400 dark:text-white dark:focus:ring-amber-500 dark:focus:border-amber-500 transition-all duration-200" placeholder="/data/posts">
                             </div>
                         </div>
-                        <button type="button" class="hover:cursor-pointer text-white inline-flex items-center bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800" id="btnNewSub">
+                        <button type="button" class="hover:cursor-pointer text-white inline-flex items-center bg-gray-600 hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800 transition-all duration-200" id="btnNewSub">
                             <i class="fa-solid fa-plus me-2"></i>Add Subroute
                         </button>
                     </div>
@@ -129,22 +129,22 @@
                     <div class="step-page hidden" data-step="2">
                         <div class="text-center">
                             <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Please confirm your source details</h4>
-                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                            <div class="text-sm text-gray-600 dark:text-gray-400">
                                 <p>Review your source configuration before submitting.</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- Modal Actions -->
-                    <div class="flex justify-between pt-4">
-                        <button type="button" id="btnBack" class="hover:cursor-pointer text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600 hidden">
+                    <div class="flex justify-between pt-6">
+                        <button type="button" id="btnBack" class="hover:cursor-pointer text-gray-600 bg-white/60 hover:bg-gray-100/80 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200/60 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700/60 dark:text-gray-300 dark:border-gray-500/60 dark:hover:text-white dark:hover:bg-gray-600/80 dark:focus:ring-gray-600 hidden transition-all duration-200">
                             Back
                         </button>
-                        <div class="flex space-x-2">
-                            <button type="button" id="btnNext" class="hover:cursor-pointer text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                        <div class="flex space-x-3">
+                            <button type="button" id="btnNext" class="hover:cursor-pointer text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 focus:ring-4 focus:outline-none focus:ring-amber-300 font-medium rounded-lg text-sm px-6 py-3 text-center dark:focus:ring-amber-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                                 Next
                             </button>
-                            <button type="submit" class="hover:cursor-pointer text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 hidden" id="btnSubmit">
+                            <button type="submit" class="hover:cursor-pointer text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 focus:ring-4 focus:outline-none focus:ring-amber-300 font-medium rounded-lg text-sm px-6 py-3 text-center dark:focus:ring-amber-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 hidden" id="btnSubmit">
                                 Submit
                             </button>
                         </div>
@@ -153,42 +153,43 @@
             </div>
         </div>
     </div>
+
     <!-- Edit Source Modal -->
-    <div id="edit_source_modal" data-modal-placement="center" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50">
+    <div id="edit_source_modal" data-modal-placement="center" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50 backdrop-blur-sm">
         <div class="relative p-4 w-full max-w-2xl max-h-full">
-            <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
-                <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-                    <h3 id="edit-source-modal-title" class="text-lg font-semibold text-gray-900 dark:text-white">Updating source</h3>
-                    <button type="button" onclick="document.getElementById('edit_source_modal').classList.add('hidden')" class="hover:cursor-pointer text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
+            <div class="relative modal-card dark:modal-card-dark rounded-2xl shadow-2xl thin-border border-gray-200/60 dark:border-gray-600/40 dark:bg-gray-800">
+                <div class="flex items-center justify-between p-6 border-b rounded-t border-gray-200/60 dark:border-gray-600/40 dark:bg-gray-800">
+                    <h3 id="edit-source-modal-title" class="text-xl font-semibold font-serif-custom text-gray-900 dark:text-white">Updating source</h3>
+                    <button type="button" onclick="document.getElementById('edit_source_modal').classList.add('hidden')" class="hover:cursor-pointer text-gray-400 bg-transparent hover:bg-gray-200/50 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600/50 dark:hover:text-white transition-all duration-200">
                         <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
                         </svg>
                     </button>
                 </div>
-                <form method="post" action="/api/update/source" class="p-4 md:p-5" id="edit-source-form">
+                <form method="post" action="/api/update/source" class="p-6" id="edit-source-form">
                     <input type="hidden" name="original_name" id="edit-source-original-name">
                     <input type="hidden" name="created_by" id="edit-source-created-by">
                     
                     <!-- Steps Navigation -->
-                    <ol id="edit-steps" class="flex items-center w-full mb-4 sm:mb-5">
-                        <li class="flex w-full items-center text-blue-600 dark:text-blue-500">
-                            <div class="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full lg:h-12 lg:w-12 dark:bg-blue-800 shrink-0">
-                                <svg class="w-4 h-4 text-blue-600 lg:w-6 lg:h-6 dark:text-blue-300" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <ol id="edit-steps" class="flex items-center w-full mb-6">
+                        <li class="flex w-full items-center text-amber-600 dark:text-amber-500">
+                            <div class="flex items-center justify-center w-10 h-10 bg-amber-100 rounded-full lg:h-12 lg:w-12 dark:bg-amber-800 shrink-0">
+                                <svg class="w-4 h-4 text-amber-600 lg:w-6 lg:h-6 dark:text-amber-300" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
                                 </svg>
                             </div>
-                            <div class="edit-step-connector w-full h-1 border-b border-gray-100 border-4 ml-4 dark:border-gray-700"></div>
+                            <div class="edit-step-connector w-full h-1 border-b border-gray-200/60 border-4 ml-4 dark:border-gray-700/60 dark:bg-gray-800"></div>
                         </li>
                         <li class="flex w-full items-center">
-                            <div class="flex items-center justify-center w-10 h-10 bg-gray-100 rounded-full lg:h-12 lg:w-12 dark:bg-gray-700 shrink-0">
+                            <div class="flex items-center justify-center w-10 h-10 bg-gray-100/60 rounded-full lg:h-12 lg:w-12 dark:bg-gray-700/60 shrink-0">
                                 <svg class="w-4 h-4 text-gray-500 lg:w-6 lg:h-6 dark:text-gray-100" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
                                 </svg>
                             </div>
-                            <div class="edit-step-connector w-full h-1 border-b border-gray-100 border-4 ml-4 dark:border-gray-700"></div>
+                            <div class="edit-step-connector w-full h-1 border-b border-gray-200/60 border-4 ml-4 dark:border-gray-700/60 dark:bg-gray-800"></div>
                         </li>
                         <li class="flex items-center">
-                            <div class="flex items-center justify-center w-10 h-10 bg-gray-100 rounded-full lg:h-12 lg:w-12 dark:bg-gray-700 shrink-0">
+                            <div class="flex items-center justify-center w-10 h-10 bg-gray-100/60 rounded-full lg:h-12 lg:w-12 dark:bg-gray-700/60 shrink-0">
                                 <svg class="w-4 h-4 text-gray-500 lg:w-6 lg:h-6 dark:text-gray-100" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
                                 </svg>
@@ -198,14 +199,14 @@
 
                     <!-- Step 1: Basic Info -->
                     <div class="edit-step-page" data-step="0">
-                        <div class="grid gap-4 mb-4">
+                        <div class="grid gap-5 mb-6">
                             <div>
-                                <label for="edit_source_name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Source Name</label>
-                                <input type="text" name="name" id="edit_source_name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Source Name" required="">
+                                <label for="edit_source_name" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Source Name</label>
+                                <input type="text" name="name" id="edit_source_name" class="input-thin bg-gray-50/50 border border-gray-300/60 text-gray-900 text-sm rounded-lg focus:ring-amber-500 focus:border-amber-500 block w-full p-3 dark:bg-gray-600/50 dark:border-gray-500/60 dark:placeholder-gray-400 dark:text-white dark:focus:ring-amber-500 dark:focus:border-amber-500 transition-all duration-200" placeholder="Source Name" required="">
                             </div>
                             <div>
-                                <label for="edit_source_route" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Source Route</label>
-                                <input type="text" name="route" id="edit_source_route" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="api.website.com" required="">
+                                <label for="edit_source_route" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Source Route</label>
+                                <input type="text" name="route" id="edit_source_route" class="input-thin bg-gray-50/50 border border-gray-300/60 text-gray-900 text-sm rounded-lg focus:ring-amber-500 focus:border-amber-500 block w-full p-3 dark:bg-gray-600/50 dark:border-gray-500/60 dark:placeholder-gray-400 dark:text-white dark:focus:ring-amber-500 dark:focus:border-amber-500 transition-all duration-200" placeholder="api.website.com" required="">
                             </div>
                         </div>
                     </div>
@@ -215,7 +216,7 @@
                         <div id="edit-subroutes" class="grid gap-4 mb-4 max-h-60 overflow-y-auto">
                             <!-- Subroutes will be populated here -->
                         </div>
-                        <button type="button" class="hover:cursor-pointer text-white inline-flex items-center bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800" id="btnEditNewSub">
+                        <button type="button" class="hover:cursor-pointer text-white inline-flex items-center bg-gray-600 hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800 transition-all duration-200" id="btnEditNewSub">
                             <i class="fa-solid fa-plus me-2"></i>Add Subroute
                         </button>
                     </div>
@@ -224,25 +225,25 @@
                     <div class="edit-step-page hidden" data-step="2">
                         <div class="text-center">
                             <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Please confirm your source updates</h4>
-                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                            <div class="text-sm text-gray-600 dark:text-gray-400">
                                 <p>Review your source configuration before submitting.</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- Modal Actions -->
-                    <div class="flex justify-between pt-4">
-                        <button type="button" id="btnEditBack" class="hover:cursor-pointer text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600 hidden">
+                    <div class="flex justify-between pt-6">
+                        <button type="button" id="btnEditBack" class="hover:cursor-pointer text-gray-600 bg-white/60 hover:bg-gray-100/80 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200/60 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700/60 dark:text-gray-300 dark:border-gray-500/60 dark:hover:text-white dark:hover:bg-gray-600/80 dark:focus:ring-gray-600 hidden transition-all duration-200">
                             Back
                         </button>
-                        <div class="flex space-x-2">
-                            <button type="button" id="btnEditNext" class="hover:cursor-pointer text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                        <div class="flex space-x-3">
+                            <button type="button" id="btnEditNext" class="hover:cursor-pointer text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 focus:ring-4 focus:outline-none focus:ring-amber-300 font-medium rounded-lg text-sm px-6 py-3 text-center dark:focus:ring-amber-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                                 Next
                             </button>
-                            <button type="submit" class="hover:cursor-pointer text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 hidden" id="btnEditSubmit">
+                            <button type="submit" class="hover:cursor-pointer text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 focus:ring-4 focus:outline-none focus:ring-amber-300 font-medium rounded-lg text-sm px-6 py-3 text-center dark:focus:ring-amber-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 hidden" id="btnEditSubmit">
                                 Update
                             </button>
-                            <button type="button" onclick="confirmSourceDelete()" class="hover:cursor-pointer text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800" id="btnEditDelete">
+                            <button type="button" onclick="confirmSourceDelete()" class="hover:cursor-pointer text-white bg-red-500 hover:bg-red-600 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-6 py-3 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5" id="btnEditDelete">
                                 Delete
                             </button>
                         </div>
@@ -253,24 +254,24 @@
     </div>
 
     <!-- Delete Source Confirmation Modal -->
-    <div id="delete_source_confirmation_modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50">
+    <div id="delete_source_confirmation_modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50 backdrop-blur-sm">
         <div class="relative p-4 w-full max-w-md max-h-full">
-            <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
-                <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Confirm Delete</h3>
-                    <button type="button" onclick="document.getElementById('delete_source_confirmation_modal').classList.add('hidden')" class="hover:cursor-pointer text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
+            <div class="relative modal-card dark:modal-card-dark rounded-2xl shadow-2xl thin-border border-gray-200/60 dark:border-gray-600/40 dark:bg-gray-800">
+                <div class="flex items-center justify-between p-6 border-b rounded-t border-gray-200/60 dark:border-gray-600/40 dark:bg-gray-800">
+                    <h3 class="text-xl font-semibold font-serif-custom text-gray-900 dark:text-white">Confirm Delete</h3>
+                    <button type="button" onclick="document.getElementById('delete_source_confirmation_modal').classList.add('hidden')" class="hover:cursor-pointer text-gray-400 bg-transparent hover:bg-gray-200/50 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600/50 dark:hover:text-white transition-all duration-200">
                         <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
                         </svg>
                     </button>
                 </div>
-                <div class="p-4 md:p-5">
-                    <p class="text-gray-500 dark:text-gray-400 mb-4">Are you sure you want to delete this source? This action cannot be undone and may affect any dashboards using this source.</p>
-                    <div class="flex justify-end space-x-2">
-                        <button type="button" onclick="document.getElementById('delete_source_confirmation_modal').classList.add('hidden')" class="hover:cursor-pointer text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">
+                <div class="p-6">
+                    <p class="text-gray-600 dark:text-gray-400 mb-6">Are you sure you want to delete this source? This action cannot be undone and may affect any dashboards using this source.</p>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="document.getElementById('delete_source_confirmation_modal').classList.add('hidden')" class="hover:cursor-pointer text-gray-600 bg-white/60 hover:bg-gray-100/80 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200/60 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700/60 dark:text-gray-300 dark:border-gray-500/60 dark:hover:text-white dark:hover:bg-gray-600/80 dark:focus:ring-gray-600 transition-all duration-200">
                             Cancel
                         </button>
-                        <button type="button" onclick="deleteSource()" class="hover:cursor-pointer text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                        <button type="button" onclick="deleteSource()" class="hover:cursor-pointer text-white bg-red-500 hover:bg-red-600 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm px-6 py-3 text-center transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                             Delete
                         </button>
                     </div>
@@ -278,26 +279,27 @@
             </div>
         </div>
     </div>
+
     <!-- Sidebar -->
     <aside id="default-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
-        <div class="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
-            <ul class="space-y-2 font-medium">
+        <div class="h-full px-4 py-6 overflow-y-auto sidebar-glass dark:sidebar-glass-dark thin-border border-r border-gray-200/60 dark:border-gray-600/40 dark:bg-gray-800">
+            <ul class="space-y-3 font-medium">
                 <li>
-                    <button onclick="location.href = '/home'" class="hover:cursor-pointer flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group w-full">
-                        <i class="fa-solid fa-chart-line w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"></i>
+                    <button onclick="location.href = '/home'" class="hover:cursor-pointer flex items-center p-3 text-gray-700 rounded-xl dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50 group w-full transition-all duration-200 hover:shadow-md">
+                        <i class="fa-solid fa-display w-5 h-5 text-gray-500 transition duration-200 dark:text-gray-400 group-hover:text-amber-600 dark:group-hover:text-amber-400"></i>
                         <span class="ms-3">Dashboards</span>
                     </button>
                 </li>
                 <li>
-                    <button disabled class="hover:cursor-pointer flex items-center py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 w-full">
-                        <i class="fa-solid fa-database w-5 h-5 text-white transition duration-75 dark:text-white group-hover:text-white dark:group-hover:text-white"></i>
-                        <span class="ms-3">Sources</span>
+                    <button disabled class="flex items-center p-3 text-white bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl shadow-lg w-full">
+                        <i class="fa-solid fa-plug w-5 h-5 text-white"></i>
+                        <span class="ms-3 font-medium">Sources</span>
                     </button>
                 </li>
                 <li>
-                    <button onclick="document.getElementById('new_dash_modal').classList.remove('hidden')" class="hover:cursor-pointer flex items-center p-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 group w-full">
-                        <i class="fa-solid fa-plus w-5 h-5 text-white"></i>
-                        <span class="ms-3">New Dashboard</span>
+                    <button onclick="document.getElementById('new_dash_modal').classList.remove('hidden')" class="hover:cursor-pointer flex items-center p-3 text-gray-700 dark:text-gray-300 bg-white/30 hover:bg-white/50 dark:bg-gray-700/30 dark:hover:bg-gray-700/50 rounded-xl group w-full transition-all duration-200 hover:shadow-md border border-gray-200/60 dark:border-gray-600/40 dark:bg-gray-800">
+                        <i class="fa-solid fa-plus w-5 h-5 text-amber-600 dark:text-amber-400"></i>
+                        <span class="ms-3 font-medium">New Dashboard</span>
                     </button>
                 </li>
             </ul>
@@ -305,27 +307,29 @@
     </aside>
 
     <!-- Main Content -->
-    <div class="p-4 sm:ml-64">
+    <div class="p-6 sm:ml-64">
         <!-- Navbar -->
-        <nav class="bg-white border-gray-200 dark:bg-gray-900 mb-4">
-            <div class="flex flex-wrap items-center justify-between pl-0 pr-4 py-4">
+        <nav class="login-card dark:login-card-dark thin-border border-gray-200/60 dark:border-gray-600/40 dark:bg-gray-800 rounded-2xl shadow-lg mb-6">
+            <div class="flex flex-wrap items-center justify-between px-6 py-4">
                 <div class="flex items-center rtl:space-x-reverse">
-                    <button data-drawer-target="default-sidebar" data-drawer-toggle="default-sidebar" aria-controls="default-sidebar" type="button" class="hover:cursor-pointer inline-flex items-center p-2 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
+                    <button data-drawer-target="default-sidebar" data-drawer-toggle="default-sidebar" aria-controls="default-sidebar" type="button" class="hover:cursor-pointer inline-flex items-center p-2 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100/50 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700/50 dark:focus:ring-gray-600 transition-colors duration-200">
                         <span class="sr-only">Open sidebar</span>
                         <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                             <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
                         </svg>
                     </button>
-                    <h3 class="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">Sources</h3>
+                    <h3 class="text-3xl font-serif-custom font-semibold text-gray-900 dark:text-gray-100">Sources</h3>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <!-- Theme Toggle -->
-                    <button  data-theme-toggle id="theme-toggler" type="button" class="hover:cursor-pointer text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
-                        <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-                        <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+                    <button data-theme-toggle id="theme-toggler" type="button" class="hover:cursor-pointer text-gray-500 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 transition-colors duration-200">
+                        <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                        </svg>
+                        <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path>
+                        </svg>
                     </button>
-                    <!-- Logout Button -->
-                    <button onclick="location.href='/logout'" class="hover:cursor-pointer text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
+                    <button onclick='location.href="/logout"' class="hover:cursor-pointer text-gray-500 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 transition-colors duration-200">
                         <i class="fa-solid fa-user-minus text-xl"></i>
                     </button>
                 </div>
@@ -334,29 +338,29 @@
 
         <!-- Toast Notification -->
         {% if error %}
-        <div id="toast-danger" class="fixed top-5 right-5 flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800" role="alert">
-            <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-red-500 bg-red-100 rounded-lg dark:bg-red-800 dark:text-red-200">
-                <i class="fa-solid fa-triangle-exclamation"></i>
+        <div id="toast-danger" class="fixed top-5 right-5 flex items-center w-full max-w-xs p-4 mb-4 text-gray-600 bg-white/90 rounded-xl shadow-lg backdrop-blur-sm thin-border border-red-200/60 dark:text-gray-300 dark:bg-gray-800/90 dark:border-red-800/60" role="alert">
+            <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-red-600 bg-red-50/80 rounded-lg dark:bg-red-900/30 dark:text-red-400">
+                <i class="fa-solid fa-triangle-exclamation text-sm"></i>
             </div>
-            <div class="ms-3 text-sm font-normal">{{ error }}</div>
-            <button type="button" class="hover:cursor-pointer ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" data-dismiss-target="#toast-danger" aria-label="Close">
+            <div class="ms-3 text-sm font-medium">{{ error }}</div>
+            <button type="button" class="hover:cursor-pointer ms-auto -mx-1.5 -my-1.5 bg-white/50 text-gray-400 hover:text-gray-700 rounded-lg focus:ring-2 focus:ring-gray-200 p-1.5 hover:bg-white/70 inline-flex items-center justify-center h-8 w-8 dark:text-gray-400 dark:hover:text-white dark:bg-gray-700/50 dark:hover:bg-gray-600/50 transition-all duration-200" data-dismiss-target="#toast-danger" aria-label="Close">
                 <span class="sr-only">Close</span>
                 <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
                 </svg>
             </button>
         </div>
         {% endif %}
 
         <!-- Sources Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {% for source in sources %}
-            <div class="max-w-sm bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-                <div class="p-5">
-                    <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{{ source[2] }}</h5>
-                    <p class="mb-3 font-normal text-wrap wrap-break-word text-gray-700 dark:text-gray-400">{{ source[3] }}</p>
+            <div class="source-card dark:source-card-dark rounded-2xl shadow-lg thin-border border-gray-200/60 dark:border-gray-700/60 dark:bg-gray-800">
+                <div class="p-6">
+                    <h5 class="mb-3 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">{{ source[2] }}</h5>
+                    <p class="mb-4 font-normal text-wrap break-words text-gray-600 dark:text-gray-400 leading-relaxed">{{ source[3] }}</p>
                     <div class="flex justify-end">
-                        <button onclick="openEditSourceModal('{{ source[2] }}', '{{ source[0] }}', '{{ source[3] }}', [{% for subroute in subroutes if subroute[2] == source[2] %}[{{ subroute[0] }}, '{{ subroute[1] }}', '{{ subroute[2] }}', {{ subroute[3] }}]{% if not loop.last %},{% endif %}{% endfor %}])" class="hover:cursor-pointer inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                        <button onclick="openEditSourceModal('{{ source[2] }}', '{{ source[0] }}', '{{ source[3] }}', [{% for subroute in subroutes if subroute[2] == source[2] %}[{{ subroute[0] }}, '{{ subroute[1] }}', '{{ subroute[2] }}', {{ subroute[3] }}]{% if not loop.last %},{% endif %}{% endfor %}])" class="hover:cursor-pointer inline-flex items-center px-4 py-2.5 text-sm font-medium text-center text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 rounded-lg focus:ring-4 focus:outline-none focus:ring-amber-300 dark:focus:ring-amber-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                             <i class="fa-solid fa-pencil me-2"></i>Edit
                         </button>
                     </div>
@@ -365,18 +369,39 @@
             {% endfor %}
             
             <!-- Add New Source Card -->
-            <div class="max-w-sm bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-                <div class="p-5 text-center">
-                    <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Add a new source</h5>
-                    <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Add a new API to access in a dashboard</p>
-                    <button onclick="document.getElementById('add_source_modal').classList.remove('hidden')" class="hover:cursor-pointer inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+            <div class="source-card dark:source-card-dark rounded-2xl shadow-lg thin-border border-gray-200/60 dark:border-gray-700/60 dark:bg-gray-800 border-dashed">
+                <div class="p-6 text-center">
+                    <div class="mb-4">
+                        <i class="fa-solid fa-plus text-4xl text-amber-500 dark:text-amber-400"></i>
+                    </div>
+                    <h5 class="mb-3 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">Add a new source</h5>
+                    <p class="mb-4 font-normal text-gray-600 dark:text-gray-400 leading-relaxed">Add a new API for a dashboard</p>
+                    <button onclick="document.getElementById('add_source_modal').classList.remove('hidden')" class="hover:cursor-pointer inline-flex items-center px-4 py-2.5 text-sm font-medium text-center text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 rounded-lg focus:ring-4 focus:outline-none focus:ring-amber-300 dark:focus:ring-amber-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                         <i class="fa-solid fa-plus me-2"></i>Add
                     </button>
                 </div>
             </div>
         </div>
     </div>
-    <script src="/static/themes.js"></script>
-    <script src="/static/sources.js"></script>
+
+    <script src="{{url_for('static',filename='themes.js')}}"></script>
+    <script src="{{url_for('static',filename='sources.js')}}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toast auto-hide functionality
+            const toastElements = document.querySelectorAll('[id^="toast-"]');
+            
+            toastElements.forEach(function(toast) {
+                setTimeout(function() {
+                    toast.style.opacity = '0';
+                    toast.style.transition = 'opacity 0.3s ease-out';
+                    
+                    setTimeout(function() {
+                        toast.remove();
+                    }, 300);
+                }, 10000);
+            });
+        });
+    </script>
 </body>
 </html>

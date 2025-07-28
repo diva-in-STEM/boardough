@@ -1520,7 +1520,7 @@ function generateStatsModalContent() {
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Data Source</label>
                 <select id="stats-source" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" onchange="updateSubrouteOptions('stats')">
                     <option value="">Select a source...</option>
-                    <option value="${dashboardSource[3]}">${dashboardSource[2]}</option>
+                    <option value="${dashboardSource[3]}" class="text-black dark:text-white">${dashboardSource[2]}</option>
                 </select>
             </div>
             <div>
@@ -1561,13 +1561,13 @@ function generateStatsModalContent() {
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Data Source</label>
                 <div class="flex space-x-2">
-                    <label class="flex items-center">
+                    <label class="flex items-center text-black dark:text-white">
                         <input type="radio" name="stats-source-type" value="calculation" class="mr-2" onchange="toggleStatsSourceType()">
-                        <span>Use Calculation</span>
+                        <span class="text-black dark:text-white">Use Calculation</span>
                     </label>
                     <label class="flex items-center">
-                        <input type="radio" name="stats-source-type" value="manual" class="mr-2" checked onchange="toggleStatsSourceType()">
-                        <span>Manual Setup</span>
+                        <input type="radio" name="stats-source-type" value="manual" class="mr-2 text-black dark:text-white" checked onchange="toggleStatsSourceType()">
+                        <span class="text-black dark:text-white">Manual Setup</span>
                     </label>
                 </div>
             </div>
@@ -1636,11 +1636,11 @@ function generateChartModalContent() {
                 <div class="flex space-x-2">
                     <label class="flex items-center">
                         <input type="radio" name="chart-source-type" value="calculation" class="mr-2" onchange="toggleChartSourceType()">
-                        <span>Use Calculation</span>
+                        <span class="text-black dark:text-white">Use Calculation</span>
                     </label>
                     <label class="flex items-center">
                         <input type="radio" name="chart-source-type" value="manual" class="mr-2" checked onchange="toggleChartSourceType()">
-                        <span>Manual Setup</span>
+                        <span class="text-black dark:text-white">Manual Setup</span>
                     </label>
                 </div>
             </div>
@@ -1707,11 +1707,11 @@ function generateTableModalContent() {
                 <div class="flex space-x-2">
                     <label class="flex items-center">
                         <input type="radio" name="table-source-type" value="calculation" class="mr-2" onchange="toggleTableSourceType()">
-                        <span>Use Calculation</span>
+                        <span class="text-black dark:text-white">Use Calculation</span>
                     </label>
                     <label class="flex items-center">
                         <input type="radio" name="table-source-type" value="manual" class="mr-2" checked onchange="toggleTableSourceType()">
-                        <span>Manual Setup</span>
+                        <span class="text-black dark:text-white">Manual Setup</span>
                     </label>
                 </div>
             </div>

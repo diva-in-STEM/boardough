@@ -19,166 +19,219 @@
     <script type="application/json" id="subroutes-data">{{ subroutes|tojson|safe }}</script>
     <title>Configuring Dashboard {{ dashboard[3] }}</title>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 flex h-screen overflow-hidden">
-    <!-- Customization Modal -->
-    <div id="customization-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+<body class="bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 min-h-screen">
+
+    <!-- Modals -->
+    <div id="customization-modal" class="fixed inset-0 bg-black/50 overflow-y-auto h-full w-full hidden z-50 ">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-xl rounded-2xl login-card dark:login-card-dark thin-border border-gray-200/60 dark:border-gray-600/40 bg-white dark:bg-gray-700">
             <div class="mt-3">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white" id="modal-title">Customize Widget</h3>
-                    <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:cursor-pointer" onclick="closeCustomizationModal()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div id="modal-content">
-                    <!-- Dynamic content will be inserted here -->
-                </div>
-                <div class="flex justify-end space-x-3 mt-6">
-                    <button class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-700 hover:cursor-pointer" onclick="closeCustomizationModal()">Cancel</button>
-                    <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 hover:cursor-pointer" onclick="applyCustomization()">Apply</button>
-                </div>
+            <div class="flex items-center justify-between mb-4 p-2 border-b thin-border border-gray-200/60 dark:border-gray-600/40">
+                <h3 class="text-xl font-serif-custom font-semibold text-gray-900 dark:text-white" id="modal-title">Customize Widget</h3>
+                <button class="text-gray-400 hover:bg-gray-200/50 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center dark:hover:bg-gray-700/50 dark:hover:text-white transition" onclick="closeCustomizationModal()">
+                <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="modal-content" class="p-4"></div>
+            <div class="flex justify-end space-x-3 mt-6 p-4">
+                <button class="px-4 py-2 text-gray-700 bg-gray-100/50 hover:bg-gray-200/50 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border thin-border border-gray-300/60 text-sm font-medium hover:text-gray-900 dark:bg-gray-700/50 dark:text-gray-300 dark:border-gray-600/60 dark:hover:text-white dark:hover:bg-gray-600/50 transition-colors duration-200" onclick="closeCustomizationModal()">Cancel</button>
+                <button class="px-4 py-2 text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 rounded-lg focus:ring-4 focus:outline-none focus:ring-amber-300 dark:focus:ring-amber-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium text-sm" onclick="applyCustomization()">Apply</button>
+            </div>
             </div>
         </div>
     </div>
-    <div id="node-config-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-        <div class="relative top-10 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white dark:bg-gray-800">
+    <div id="node-config-modal" class="fixed inset-0 bg-black/50 overflow-y-auto h-full w-full hidden z-50 ">
+        <div class="relative top-10 mx-auto p-5 border w-11/12 max-w-4xl shadow-xl rounded-2xl login-card dark:login-card-dark thin-border border-gray-200/60 dark:border-gray-600/40 bg-white dark:bg-gray-700">
             <div class="mt-3">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white" id="node-modal-title">Configure Node</h3>
-                    <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:cursor-pointer" onclick="closeNodeConfigModal()">
-                        <i class="fas fa-times"></i>
-                    </button>
+            <div class="flex items-center justify-between mb-4 p-4 border-b thin-border">
+                <h3 class="text-xl font-serif-custom font-semibold text-gray-900 dark:text-white" id="node-modal-title">Configure Node</h3>
+                <button class="text-gray-400 hover:bg-gray-200/50 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center dark:hover:bg-gray-700/50 dark:hover:text-white transition" onclick="closeNodeConfigModal()">
+                <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="node-modal-content" class="p-4"></div>
+                <div class="flex justify-end space-x-3 mt-6 p-4">
+                    <button class="px-4 py-2 text-gray-700 bg-gray-100/50 hover:bg-gray-200/50 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border thin-border border-gray-300/60 text-sm font-medium hover:text-gray-900 dark:bg-gray-700/50 dark:text-gray-300 dark:border-gray-600/60 dark:hover:text-white dark:hover:bg-gray-600/50 transition-colors duration-200" onclick="closeNodeConfigModal()">Cancel</button>
+                    <button class="px-4 py-2 text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 rounded-lg focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium text-sm" onclick="previewNodeConfig()">
+                    <i class="fa fa-eye mr-1"></i>Preview </button>
+                    <button class="px-4 py-2 text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 rounded-lg focus:ring-4 focus:outline-none focus:ring-amber-300 dark:focus:ring-amber-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium text-sm" onclick="applyNodeConfiguration()">
+                    <i class="fa fa-save mr-1"></i>Apply </button>
                 </div>
-                <div id="node-modal-content">
-                    <!-- Dynamic content will be inserted here -->
-                </div>
-                <div class="flex justify-end space-x-3 mt-6">
-                    <button class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-700 hover:cursor-pointer" onclick="closeNodeConfigModal()">Cancel</button>
-                    <button class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 hover:cursor-pointer" onclick="previewNodeConfig()">
-                        <i class="fa fa-eye mr-1"></i>Preview
-                    </button>
-                    <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 hover:cursor-pointer" onclick="applyNodeConfiguration()">
-                        <i class="fa fa-save mr-1"></i>Apply
-                    </button>
+            </div>
+        </div>
+    </div>
+    <div id="calculation-modal" class="fixed inset-0 bg-black/50 overflow-y-auto h-full w-full hidden z-50 ">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-xl rounded-2xl login-card dark:login-card-dark thin-border border-gray-200/60 dark:border-gray-600/40 bg-white dark:bg-gray-700">
+            <div class="mt-3">
+            <div class="flex items-center justify-between mb-4 p-2 border-b thin-border border-gray-200/60 dark:border-gray-600/40">
+                <h3 class="text-xl font-serif-custom font-semibold text-gray-900 dark:text-white" id="calculation-modal-title">Create Calculation</h3>
+                <button class="text-gray-400 hover:bg-gray-200/50 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center dark:hover:bg-gray-700/50 dark:hover:text-white transition" onclick="closeCalculationModal()">
+                <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="calculation-modal-content" class="p-4"></div>
+                <div class="flex justify-end space-x-3 mt-6 p-4">
+                    <button class="px-4 py-2 text-gray-700 bg-gray-100/50 hover:bg-gray-200/50 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border thin-border border-gray-300/60 text-sm font-medium hover:text-gray-900 dark:bg-gray-700/50 dark:text-gray-300 dark:border-gray-600/60 dark:hover:text-white dark:hover:bg-gray-600/50 transition-colors duration-200" onclick="closeCalculationModal()">Cancel</button>
+                    <button class="px-4 py-2 text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 rounded-lg focus:ring-4 focus:outline-none focus:ring-amber-300 dark:focus:ring-amber-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium text-sm" onclick="saveCalculation()">Save</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Left Sidebar -->
-    <div id="left-sidebar" class="w-64 bg-white dark:bg-gray-800 shadow-lg border-r border-gray-200 dark:border-gray-700 flex flex-col">
-        <div class="p-4 flex border-b border-gray-200 dark:border-gray-700">
-            <a href="/home" class="mr-3 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"><i class="fa-solid fa-right-from-bracket"></i></a>
-            <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Configurator</h2>
-        </div>
-        
-        <div class="flex-1 overflow-y-auto p-4">
-            <nav class="space-y-2">
-                <button type="button" class="w-full flex items-center p-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 group hover:cursor-pointer" aria-controls="pages-dropdown" data-collapse-toggle="pages-dropdown">
-                    <i class="fa-solid fa-file w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300"></i>
-                    <span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">Pages</span>
-                    <i class="fa-solid fa-chevron-down w-3 h-3 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300" aria-hidden="true"></i>
-                </button>
-                <ul id="pages-dropdown" class="py-2 space-y-2">
-                </ul>
-                <button type="button" class="w-full flex items-center p-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 group hover:cursor-pointer" aria-controls="routes-dropdown" data-collapse-toggle="routes-dropdown">
-                    <i class="fa-solid fa-network-wired w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300"></i>
-                    <span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">Routes</span>
-                    <i class="fa-solid fa-chevron-down w-3 h-3 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300" aria-hidden="true"></i>
-                </button>
-                <ul id="routes-dropdown" class="hidden py-2 space-y-2">
-                    {% for subroute in subroutes %}
-                        <li>
-                            <button type="button" class="ml-4 w-full flex items-center p-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 group hover:cursor-pointer">
-                                <i class="fa-solid fa-plug w-3 h-3 mr-3 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300"></i>
-                                {{ subroute[1] }}
-                            </button>
-                        </li>
-                    {% endfor %}
-                </ul>
-                <button type="button" class="w-full flex items-center p-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 group hover:cursor-pointer" aria-controls="calculations-dropdown" data-collapse-toggle="calculations-dropdown" onclick="showCalculationsPage()">
-                    <i class="fa-solid fa-calculator w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300"></i>
-                    <span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">Calculations</span>
-                </button>
-                <ul id="calculations-dropdown" class="hidden py-2 space-y-2">
-                    <!-- Calculations will be dynamically listed here -->
-                </ul>
-            </nav>
-        </div>
-    </div>
-
-    <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col">
-        <!-- Header -->
-        <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Dashboard Builder</h1>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Drag widgets from the sidebar and resize them by hovering over them</p>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <button data-theme-toggle id="theme-toggler" type="button" class="hover:cursor-pointer text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
-                        <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-                        <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
-                    </button>
-                </div>
+    <!-- Main Layout -->
+    <div class="flex h-screen">
+        <!-- Left Sidebar -->
+        <div id="left-sidebar" class="w-64 dark:bg-gray-800 shadow-xl border-r thin-border border-gray-200/60 dark:border-gray-600/40 flex flex-col">
+            <div class="p-6 flex border-b thin-border border-gray-200/60 dark:border-gray-600/40">
+                <a href="/home" class="mr-3 text-gray-500 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors duration-200">
+                    <i class="fa-solid fa-right-from-bracket text-lg"></i>
+                </a>
+                <h2 class="text-xl font-serif-custom font-semibold text-gray-800 dark:text-white">Configurator</h2>
             </div>
-        </header>
+            
+            <div class="flex-1 overflow-y-auto p-4">
+                <nav class="space-y-3">
+                    <!-- Pages Section -->
+                    <button type="button" class="w-full flex items-center p-3 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-white/50 dark:hover:bg-gray-700/50 group transition-all duration-200 hover:shadow-md" aria-controls="pages-dropdown" data-collapse-toggle="pages-dropdown">
+                        <i class="fa-solid fa-file w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition duration-200"></i>
+                        <span class="flex-1 ms-3 text-left font-medium">Pages</span>
+                        <i class="fa-solid fa-chevron-down w-3 h-3 text-gray-500 dark:text-gray-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition duration-200"></i>
+                    </button>
+                    <ul id="pages-dropdown" class="py-2 space-y-2 ml-4"></ul>
+                    
+                    <!-- Routes Section -->
+                    <button type="button" class="w-full flex items-center p-3 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-white/50 dark:hover:bg-gray-700/50 group transition-all duration-200 hover:shadow-md" aria-controls="routes-dropdown" data-collapse-toggle="routes-dropdown">
+                        <i class="fa-solid fa-network-wired w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition duration-200"></i>
+                        <span class="flex-1 ms-3 text-left font-medium">Routes</span>
+                        <i class="fa-solid fa-chevron-down w-3 h-3 text-gray-500 dark:text-gray-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition duration-200"></i>
+                    </button>
+                    <ul id="routes-dropdown" class="hidden py-2 space-y-2 ml-4">
+                        {% for subroute in subroutes %}
+                            <li>
+                                <button type="button" class="w-full flex items-center p-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-white/30 dark:hover:bg-gray-700/30 group transition-all duration-200">
+                                    <i class="fa-solid fa-plug w-3 h-3 mr-3 text-gray-500 dark:text-gray-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition duration-200"></i>
+                                    {{ subroute[1] }}
+                                </button>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    
+                    <!-- Calculations Section -->
+                    <button type="button" class="w-full flex items-center p-3 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-white/50 dark:hover:bg-gray-700/50 group transition-all duration-200 hover:shadow-md" onclick="showCalculationsPage()">
+                        <i class="fa-solid fa-calculator w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition duration-200"></i>
+                        <span class="flex-1 ms-3 text-left font-medium">Calculations</span>
+                    </button>
+                    <ul id="calculations-dropdown" class="hidden py-2 space-y-2 ml-4"></ul>
+                </nav>
+            </div>
+        </div>
 
-        <!-- Drop Zone / Main Content -->
-        <main class="flex-1 p-6 overflow-auto">
-            <div id="calculations-page" class="hidden">
-                <div class="mb-6">
-                    <div class="w-full flex  justify-between">
-                        <h2 class="text-xl font-bold text-gray-900 dark:text-white">Calculations</h2>
-                        <button class="text-gray-400 hover:text-red-600 hover:cursor-pointer" onclick="hideCalculationsPage()"><i class="fa-solid fa-times"></i></button>
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col">
+            <!-- Header -->
+            <header class="login-card dark:login-card-dark shadow-lg border-b thin-border border-gray-200/60 dark:border-gray-600/40 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-serif-custom font-semibold text-gray-900 dark:text-white">Dashboard Builder</h1>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Drag widgets from the sidebar and resize them by hovering over them</p>
                     </div>
-                    <button class="mt-2 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 hover:cursor-pointer" onclick="showCalculationModal()">Create New Calculation</button>
+                    <div class="flex items-center space-x-4">
+                        <button data-theme-toggle id="theme-toggler" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 transition-colors duration-200">
+                            <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                            </svg>
+                            <svg id="theme-toggle-light-icon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
-                <div id="calculations-list" class="space-y-4"></div>
-            </div>
-            <div id="drop-zone" class="min-h-full border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 bg-white dark:bg-gray-800 relative">
-                <div class="text-center text-gray-500 dark:text-gray-400 mb-8" id="drag-instructions">
-                    <i class="fa-solid fa-mouse-pointer text-4xl mb-4"></i>
-                    <p class="text-lg">Drag components from the right sidebar to build your dashboard</p>
-                    <p class="text-sm mt-2 opacity-75">Hover over cards to see resize handles</p>
-                </div>
-                
-                <div id="card-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 grid-rows-4 gap-6">
-                    <!-- Cards will be dynamically added here -->
-                </div>
-            </div>
-        </main>
-    </div>
+            </header>
 
-    <!-- Right Sidebar (Component Library) -->
-    <div id="right-sidebar" class="w-64 bg-white dark:bg-gray-800 shadow-lg border-l border-gray-200 dark:border-gray-700 flex flex-col">
-        <div class="p-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Components</h2>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Drag to add, hover to resize</p>
-        </div>
-        <div class="flex-1 overflow-y-auto p-4" id="component-library">
-            <!-- Components will be dynamically generated -->
-        </div>
-    </div>
-    <div id="calculation-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
-            <div class="mt-3">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white" id="calculation-modal-title">Create Calculation</h3>
-                    <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:cursor-pointer" onclick="closeCalculationModal()">
-                        <i class="fas fa-times"></i>
-                    </button>
+            <!-- Main Content -->
+            <main class="flex-1 p-6 overflow-auto">
+                <!-- Calculations Page -->
+                <div id="calculations-page" class="hidden">
+                    <div class="login-card dark:login-card-dark thin-border border-gray-200/60 dark:border-gray-600/40 rounded-2xl shadow-lg p-6 mb-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-2xl font-serif-custom font-semibold text-gray-900 dark:text-white">Calculations</h2>
+                            <button class="text-gray-400 hover:text-red-600 transition-colors duration-200" onclick="hideCalculationsPage()">
+                                <i class="fa-solid fa-times text-xl"></i>
+                            </button>
+                        </div>
+                        <button class="mt-4 inline-flex items-center px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 rounded-lg focus:ring-4 focus:outline-none focus:ring-amber-300 dark:focus:ring-amber-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5" onclick="showCalculationModal()">
+                            <i class="fa-solid fa-plus mr-2"></i>Create New Calculation
+                        </button>
+                    </div>
+                    <div id="calculations-list" class="space-y-4"></div>
                 </div>
-                <div id="calculation-modal-content">
-                    <!-- Dynamic content will be inserted here -->
+
+                <!-- Drop Zone -->
+                <div id="drop-zone" class="min-h-full border-2 border-dashed border-gray-300/60 dark:border-gray-600/60 rounded-2xl p-8 login-card dark:login-card-dark shadow-lg relative">
+                    <div class="text-center text-gray-500 dark:text-gray-400 mb-8" id="drag-instructions">
+                        <i class="fa-solid fa-mouse-pointer text-4xl mb-4 text-amber-500 dark:text-amber-400"></i>
+                        <p class="text-lg font-medium">Drag components from the right sidebar to build your dashboard</p>
+                        <p class="text-sm mt-2 opacity-75">Hover over cards to see resize handles</p>
+                    </div>
+                    <div id="card-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 grid-rows-4 gap-6"></div>
                 </div>
-                <div class="flex justify-end space-x-3 mt-6">
-                    <button class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-700 hover:cursor-pointer" onclick="closeCalculationModal()">Cancel</button>
-                    <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 hover:cursor-pointer" onclick="saveCalculation()">Save</button>
+            </main>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div id="right-sidebar" class="w-64 dark:bg-gray-800 shadow-xl border-l thin-border border-gray-200/60 dark:border-gray-600/40 flex flex-col">
+            <div class="p-6 border-b thin-border border-gray-200/60 dark:border-gray-600/40">
+                <h2 class="text-xl font-serif-custom font-semibold text-gray-800 dark:text-white">Components</h2>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Drag to add, hover to resize</p>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4" id="component-library">
+                <!-- Sample components -->
+                <div class="space-y-3">
+                    <div class="login-card dark:login-card-dark thin-border border-gray-200/60 dark:border-gray-600/40 rounded-xl p-4 hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1 cursor-move">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-chart-bar text-amber-500 dark:text-amber-400 mr-3"></i>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Bar Chart</span>
+                        </div>
+                    </div>
+                    
+                    <div class="login-card dark:login-card-dark thin-border border-gray-200/60 dark:border-gray-600/40 rounded-xl p-4 hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1 cursor-move">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-chart-line text-amber-500 dark:text-amber-400 mr-3"></i>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Line Chart</span>
+                        </div>
+                    </div>
+                    
+                    <div class="login-card dark:login-card-dark thin-border border-gray-200/60 dark:border-gray-600/40 rounded-xl p-4 hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1 cursor-move">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-chart-pie text-amber-500 dark:text-amber-400 mr-3"></i>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Pie Chart</span>
+                        </div>
+                    </div>
+                    
+                    <div class="login-card dark:login-card-dark thin-border border-gray-200/60 dark:border-gray-600/40 rounded-xl p-4 hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1 cursor-move">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-table text-amber-500 dark:text-amber-400 mr-3"></i>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Data Table</span>
+                        </div>
+                    </div>
+                    
+                    <div class="login-card dark:login-card-dark thin-border border-gray-200/60 dark:border-gray-600/40 rounded-xl p-4 hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1 cursor-move">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-square-poll-vertical text-amber-500 dark:text-amber-400 mr-3"></i>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">KPI Card</span>
+                        </div>
+                    </div>
+                    
+                    <div class="login-card dark:login-card-dark thin-border border-gray-200/60 dark:border-gray-600/40 rounded-xl p-4 hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1 cursor-move">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-gauge text-amber-500 dark:text-amber-400 mr-3"></i>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Gauge</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
+    
     </div>
     <script src="{{url_for('static',filename='themes.js')}}"></script>
     <script src="{{url_for('static',filename='configurator.js')}}"></script>

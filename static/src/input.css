@@ -3,6 +3,7 @@
 @plugin "flowbite/plugin";
 @source "../../node_modules/flowbite";
 @custom-variant dark (&:where(.dark, .dark *));
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
 .calc-flow-node:hover {
     border-color: #3b82f6;
@@ -64,4 +65,24 @@
 
 .node-config-section:last-child {
     margin-bottom: 0;
+}
+
+.font-serif-custom {
+    font-family: 'Crimson Text', serif;
+}
+
+.font-sans-custom {
+    font-family: 'Inter', sans-serif;
+}
+
+.thin-border {
+    border-width: 0.5px;
+}
+
+.input-thin {
+    border-width: 0.5px;
+}
+
+.input-thin:focus {
+    border-width: 1px;
 }

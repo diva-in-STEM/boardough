@@ -393,8 +393,7 @@ def save_dashboard(dashboardID):
     else:
         json_data = json.dumps(dashboardState, ensure_ascii=False)
         query_db('update dashboards set configuration = ? where id = ?', (str(json_data), dashboardID))
-
-    return redirect('/home')
+        return redirect(f'/configurator/{dashboardID}')
 
 if __name__ == '__main__':
 	app.run(debug=True)
