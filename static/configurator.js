@@ -1509,53 +1509,9 @@ function closeCustomizationModal() {
     currentCustomizingCard = null;
 }
 
-function generateStatsModalContent() {
-    const subrouteOptions = subroutes.map(subroute =>
-        `<option value="${subroute[1]}">${subroute[1]}</option>`
-    ).join('');
-
-    return `
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Data Source</label>
-                <select id="stats-source" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" onchange="updateSubrouteOptions('stats')">
-                    <option value="">Select a source...</option>
-                    <option value="${dashboardSource[3]}" class="text-black dark:text-white">${dashboardSource[2]}</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Endpoint</label>
-                <select id="stats-subroute-left" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" disabled="true">
-                    <option value="">Subroute for the left stat</option>
-                    ${subrouteOptions}
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Left Label</label>
-                <input type="text" id="stats-left-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" placeholder="e.g., count, total, value">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Endpoint</label>
-                <select id="stats-subroute-right" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white subroute-selector" disabled="true">
-                    <option value="">Subroute for the right stat</option>
-                    ${subrouteOptions}
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Right Label</label>
-                <input type="text" id="stats-right-field" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white" placeholder="e.g., name, category, type">
-            </div>
-        </div>
-    `;
-}function generateStatsModalContent() {
-    const availableCalculations = Object.entries(dashboardState.calculations || {})
-        .map(([id, calc]) => `<option value="${id}">${calc.name}</option>`)
-        .join('');
-    
-    const subrouteOptions = subroutes.map(route => 
-        `<option value="${route[1]}">${route[1]}</option>`
-    ).join('');
-
+function generateStatsModalContent(){
+    const availableCalculations=Object.entries(dashboardState.calculations||{}).map(([id,calc])=>`<option value="${ id }">${calc.name }</option>`).join('');
+    const subrouteOptions=subroutes.map(route=>`<option value="${route[1]}">${route[1]}</option>`).join('');
     return `
         <div class="space-y-4">
             <div>
@@ -1576,7 +1532,7 @@ function generateStatsModalContent() {
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Calculation</label>
                 <select id="stats-calculation" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
                     <option value="">Choose a calculation...</option>
-                    ${availableCalculations}
+                    ${ availableCalculations }
                 </select>
             </div>
             
@@ -1585,7 +1541,7 @@ function generateStatsModalContent() {
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Primary Data Source</label>
                     <select id="stats-subroute-left" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
                         <option value="">Select endpoint...</option>
-                        ${subrouteOptions}
+                        ${ subrouteOptions }
                     </select>
                 </div>
                 <div>
@@ -1602,7 +1558,7 @@ function generateStatsModalContent() {
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Secondary Data Source</label>
                     <select id="stats-subroute-right" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
                         <option value="">Select endpoint...</option>
-                        ${subrouteOptions}
+                        ${ subrouteOptions }
                     </select>
                 </div>
                 <div>
@@ -1616,9 +1572,8 @@ function generateStatsModalContent() {
                 </div>
             </div>
         </div>
-    `;
+    `
 }
-
 
 function generateChartModalContent() {
     const availableCalculations = Object.entries(dashboardState.calculations || {})
@@ -1795,35 +1750,6 @@ function toggleTableSourceType() {
     }
 }
 
-function updateSubrouteOptions(widgetType) {
-    const sourceSelect = document.getElementById(`${widgetType}-source`);
-    const leftSubrouteSelector = document.getElementById('stats-subroute-left');
-    const rightSubrouteSelector = document.getElementById('stats-subroute-right');
-    const selectedSource = sourceSelect.value;
-    
-    // Clear and disable subroute select
-    leftSubrouteSelector.disabled = false;
-    rightSubrouteSelector.disabled = false;
-    
-    if (!selectedSource) return;
-    
-    // Find matching subroutes for the selected source
-    // Assuming subroute tuple structure: [id, path, source_name, source_created_by]
-    const matchingSubroutes = subroutes.filter(subroute => 
-        subroute[2] === selectedSource
-    );
-    
-    if (matchingSubroutes.length > 0) {
-        matchingSubroutes.forEach(subroute => {
-            const option = document.createElement('option');
-            option.value = subroute[1]; // path is at index 1
-            option.textContent = subroute[1];
-            subrouteSelect.appendChild(option);
-        });
-        subrouteSelect.disabled = false;
-    }
-}
-
 async function applyCustomization() {
     if (!currentCustomizingCard) return;
     
@@ -1844,189 +1770,192 @@ async function applyCustomization() {
     }
 }
 
-async function applyStatsCustomization() {
-    const sourceType = document.querySelector('input[name="stats-source-type"]:checked').value;
-    const statsConfig = { sourceType, configured: true };
-    
-    if (sourceType === 'calculation') {
-        const calculationId = document.getElementById('stats-calculation').value;
-        if (!calculationId) {
+async function applyStatsCustomization(){
+    const sourceType=document.querySelector('input[name="stats-source-type"]:checked').value;
+    const statsConfig={sourceType,configured:true};
+
+    if(sourceType==='calculation'){
+        const calculationId=document.getElementById('stats-calculation').value;
+        if(!calculationId){
             alert('Please select a calculation');
             return;
         }
-        
-        statsConfig.calculationId = calculationId;
-        statsConfig.calculationName = dashboardState.calculations[calculationId]?.name || 'Unknown';
-        
-        try {
-            const result = await executeCalculationById(calculationId);
-            updateStatsCardFromCalculation(currentCustomizingCard, result, statsConfig.calculationName);
-        } catch (error) {
-            console.error('Error executing calculation:', error);
-            alert('Error executing calculation: ' + error.message);
+        statsConfig.calculationId=calculationId;
+        statsConfig.calculationName=dashboardState.calculations[calculationId]?.name||'Unknown';
+        try{
+            const result=await executeCalculationById(calculationId);
+            updateStatsCardFromCalculation(currentCustomizingCard,result,statsConfig.calculationName);
+        }catch(error){
+            console.error('Error executing calculation:',error);
+            alert('Error executing calculation: '+error.message);
             return;
         }
-    } else {
-        // Manual configuration
-        const leftSubroute = document.getElementById('stats-subroute-left').value;
-        const rightSubroute = document.getElementById('stats-subroute-right').value;
-        const leftType = document.getElementById('stats-left-type').value;
-        const rightType = document.getElementById('stats-right-type').value;
-        const leftField = document.getElementById('stats-left-field').value;
-        const rightField = document.getElementById('stats-right-field').value;
-        const leftLabel = document.getElementById('stats-left-label').value;
-        const rightLabel = document.getElementById('stats-right-label').value;
-        
-        if (!leftSubroute || !rightSubroute) {
+    }else{
+        const leftSubroute=document.getElementById('stats-subroute-left').value;
+        const rightSubroute=document.getElementById('stats-subroute-right').value;
+        const leftType=document.getElementById('stats-left-type').value;
+        const rightType=document.getElementById('stats-right-type').value;
+        const leftField=document.getElementById('stats-left-field').value;
+        const rightField=document.getElementById('stats-right-field').value;
+        const leftLabel=document.getElementById('stats-left-label').value;
+        const rightLabel=document.getElementById('stats-right-label').value;
+
+        if(!leftSubroute||!rightSubroute){
             alert('Please select both data sources');
             return;
         }
-        
-        // Save configuration
-        Object.assign(statsConfig, {
-            leftSubroute, rightSubroute, leftType, rightType,
-            leftField, rightField, leftLabel, rightLabel
+
+        // CRITICAL FIX: Add validation for dashboardSource[3]
+        if(!dashboardSource || !dashboardSource[3] || dashboardSource[3] === 'undefined') {
+            alert('Dashboard source URL is not properly configured');
+            console.error('Dashboard source is undefined:', dashboardSource);
+            return;
+        }
+
+        Object.assign(statsConfig,{
+            leftSubroute,rightSubroute,leftType,rightType,
+            leftField,rightField,leftLabel,rightLabel
         });
-        
-        try {
-            const [leftResponse, rightResponse] = await Promise.all([
-                cachedFetch(`${dashboardSource[3]}${leftSubroute}`, {}, { ttl: 300000 }),
-                cachedFetch(`${dashboardSource[3]}${rightSubroute}`, {}, { ttl: 300000 })
+
+        try{
+            // Build URLs with validation
+            const leftUrl = `${dashboardSource[3]}${leftSubroute}`;
+            const rightUrl = `${dashboardSource[3]}${rightSubroute}`;
+            
+            console.log('Fetching URLs:', leftUrl, rightUrl); // Debug log
+            
+            const[leftResponse,rightResponse]=await Promise.all([
+                cachedFetch(leftUrl,{},{ttl:300000}),
+                cachedFetch(rightUrl,{},{ttl:300000})
             ]);
-            
-            const leftData = await leftResponse.json();
-            const rightData = await rightResponse.json();
-            
-            updateStatsCardFromData(currentCustomizingCard, leftData, rightData, {
-                leftType, rightType, leftField, rightField, leftLabel, rightLabel
+
+            const leftData=await leftResponse.json();
+            const rightData=await rightResponse.json();
+            updateStatsCardFromData(currentCustomizingCard,leftData,rightData,{
+                leftType,rightType,leftField,rightField,leftLabel,rightLabel
             });
-        } catch (error) {
-            console.error('Error fetching stats data:', error);
-            alert('Error fetching data: ' + error.message);
+        }catch(error){
+            console.error('Error fetching stats data:',error);
+            alert('Error fetching data: '+error.message);
             return;
         }
     }
-    
-    // Store the configuration in the card element
-    currentCustomizingCard.dataset.statsConfig = JSON.stringify(statsConfig);
+
+    currentCustomizingCard.dataset.statsConfig=JSON.stringify(statsConfig);
 }
 
-async function applyChartCustomization() {
-    const sourceType = document.querySelector('input[name="chart-source-type"]:checked').value;
-    const chartType = document.getElementById('chart-type').value;
-    const xField = document.getElementById('chart-x-field').value;
-    const yField = document.getElementById('chart-y-field').value;
-    const title = document.getElementById('chart-title').value;
-    
-    const chartConfig = { 
-        sourceType, 
-        configured: true, 
-        chartType, 
-        xField, 
-        yField, 
-        title 
-    };
-    
-    let data = [];
-    
-    if (sourceType === 'calculation') {
-        const calculationId = document.getElementById('chart-calculation').value;
-        if (!calculationId) {
+async function applyChartCustomization(){
+    const sourceType=document.querySelector('input[name="chart-source-type"]:checked').value;
+    const chartType=document.getElementById('chart-type').value;
+    const xField=document.getElementById('chart-x-field').value;
+    const yField=document.getElementById('chart-y-field').value;
+    const title=document.getElementById('chart-title').value;
+
+    const chartConfig={sourceType,configured:true,chartType,xField,yField,title};
+    let data=[];
+
+    if(sourceType==='calculation'){
+        const calculationId=document.getElementById('chart-calculation').value;
+        if(!calculationId){
             alert('Please select a calculation');
             return;
         }
-        
-        chartConfig.calculationId = calculationId;
-        
-        try {
-            data = await executeCalculationById(calculationId);
-        } catch (error) {
-            console.error('Error executing calculation:', error);
-            alert('Error executing calculation: ' + error.message);
+        chartConfig.calculationId=calculationId;
+        try{
+            data=await executeCalculationById(calculationId);
+        }catch(error){
+            console.error('Error executing calculation:',error);
+            alert('Error executing calculation: '+error.message);
             return;
         }
-    } else {
-        const subroute = document.getElementById('chart-subroute').value;
-        if (!subroute) {
+    }else{
+        const subroute=document.getElementById('chart-subroute').value;
+        if(!subroute){
             alert('Please select a data endpoint');
             return;
         }
-        if (!xField || !yField) {
+        if(!xField||!yField){
             alert('Please specify both X and Y axis fields');
             return;
         }
-        
-        chartConfig.subroute = subroute;
-        
-        try {
-            const response = await cachedFetch(`${dashboardSource[3]}${subroute}`, {}, { ttl: 300000 });
-            data = await response.json();
-        } catch (error) {
-            console.error('Error fetching chart data:', error);
-            alert('Error fetching data: ' + error.message);
+
+        // CRITICAL FIX: Add validation for dashboardSource[3]
+        if(!dashboardSource || !dashboardSource[3] || dashboardSource[3] === 'undefined') {
+            alert('Dashboard source URL is not properly configured');
+            console.error('Dashboard source is undefined:', dashboardSource);
+            return;
+        }
+
+        chartConfig.subroute=subroute;
+        try{
+            const url = `${dashboardSource[3]}${subroute}`;
+            console.log('Fetching chart URL:', url); // Debug log
+            
+            const response=await cachedFetch(url,{},{ttl:300000});
+            data=await response.json();
+        }catch(error){
+            console.error('Error fetching chart data:',error);
+            alert('Error fetching data: '+error.message);
             return;
         }
     }
-    
-    updateChartCard(currentCustomizingCard, data, chartType, xField, yField, title);
-    
-    // Store the configuration in the card element
-    currentCustomizingCard.dataset.chartConfig = JSON.stringify(chartConfig);
+
+    updateChartCard(currentCustomizingCard,data,chartType,xField,yField,title);
+    currentCustomizingCard.dataset.chartConfig=JSON.stringify(chartConfig);
 }
 
-async function applyTableCustomization() {
-    const sourceType = document.querySelector('input[name="table-source-type"]:checked').value;
-    const maxRows = parseInt(document.getElementById('table-max-rows').value) || 10;
-    const showPagination = document.getElementById('table-show-pagination').checked;
-    
-    const tableConfig = { 
-        sourceType, 
-        configured: true, 
-        maxRows, 
-        showPagination 
-    };
-    
-    let data = [];
-    
-    if (sourceType === 'calculation') {
-        const calculationId = document.getElementById('table-calculation').value;
-        if (!calculationId) {
+async function applyTableCustomization(){
+    const sourceType=document.querySelector('input[name="table-source-type"]:checked').value;
+    const maxRows=parseInt(document.getElementById('table-max-rows').value)||10;
+    const showPagination=document.getElementById('table-show-pagination').checked;
+
+    const tableConfig={sourceType,configured:true,maxRows,showPagination};
+    let data=[];
+
+    if(sourceType==='calculation'){
+        const calculationId=document.getElementById('table-calculation').value;
+        if(!calculationId){
             alert('Please select a calculation');
             return;
         }
-        
-        tableConfig.calculationId = calculationId;
-        
-        try {
-            data = await executeCalculationById(calculationId);
-        } catch (error) {
-            console.error('Error executing calculation:', error);
-            alert('Error executing calculation: ' + error.message);
+        tableConfig.calculationId=calculationId;
+        try{
+            data=await executeCalculationById(calculationId);
+        }catch(error){
+            console.error('Error executing calculation:',error);
+            alert('Error executing calculation: '+error.message);
             return;
         }
-    } else {
-        const subroute = document.getElementById('table-subroute').value;
-        if (!subroute) {
+    }else{
+        const subroute=document.getElementById('table-subroute').value;
+        if(!subroute){
             alert('Please select a data endpoint');
             return;
         }
-        
-        tableConfig.subroute = subroute;
-        
-        try {
-            const response = await cachedFetch(`${dashboardSource[3]}${subroute}`, {}, { ttl: 300000 });
-            data = await response.json();
-        } catch (error) {
-            console.error('Error fetching table data:', error);
-            alert('Error fetching data: ' + error.message);
+
+        // CRITICAL FIX: Add validation for dashboardSource[3]
+        if(!dashboardSource || !dashboardSource[3] || dashboardSource[3] === 'undefined') {
+            alert('Dashboard source URL is not properly configured');
+            console.error('Dashboard source is undefined:', dashboardSource);
+            return;
+        }
+
+        tableConfig.subroute=subroute;
+        try{
+            const url = `${dashboardSource[3]}${subroute}`;
+            console.log('Fetching table URL:', url); // Debug log
+            
+            const response=await cachedFetch(url,{},{ttl:300000});
+            data=await response.json();
+        }catch(error){
+            console.error('Error fetching table data:',error);
+            alert('Error fetching data: '+error.message);
             return;
         }
     }
-    
-    updateTableCard(currentCustomizingCard, data, maxRows, showPagination);
-    
-    // Store the configuration in the card element
-    currentCustomizingCard.dataset.tableConfig = JSON.stringify(tableConfig);
+
+    updateTableCard(currentCustomizingCard,data,maxRows,showPagination);
+    currentCustomizingCard.dataset.tableConfig=JSON.stringify(tableConfig);
 }
 
 async function executeCalculationById(calculationId) {

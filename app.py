@@ -259,7 +259,7 @@ def delete_dashboard(dashboardID):
             
             # Delete the dashboard
             query_db('DELETE FROM dashboards WHERE id = ?', (dashboardID,))
-            
+                
             # Redirect back to dashboard page or wherever appropriate
             return redirect(url_for('home'))  # Adjust this to your main dashboard page
             

@@ -44,9 +44,9 @@
                         <label for="api" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Source API</label>
                         <select id="api" name="api" class="w-full p-3 text-sm border rounded-lg focus:ring-amber-500 focus:border-amber-500 border-gray-300/60 dark:border-gray-600/60 bg-gray-50/50 dark:bg-gray-700/50 text-gray-900 dark:text-white transition">
                             <option selected>Select source API</option>
-                            <option value="jsonplaceholder">JSONPlaceholder API</option>
-                            <option value="reqres">ReqRes API</option>
-                            <option value="httpbin">HTTPBin API</option>
+                            {% for source in sources %}
+                                <option value="{{ source[2] }}">{{ source[2] }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                     <button type="submit" class="w-full inline-flex items-center justify-center px-5 py-3 text-sm font-medium text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200">
@@ -58,7 +58,7 @@
     </div>
 
     <!-- Edit Dashboard Modal -->
-    <div id="edit_dashboard_modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50 backdrop-blur-sm">
+    <div id="edit_dashboard_modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black/50 backdrop-blur-sm">
         <div class="relative p-4 w-full max-w-md max-h-full">
             <div class="relative login-card dark:login-card-dark thin-border border-gray-200/60 rounded-2xl shadow-2xl dark:border-gray-600/40 dark:bg-gray-800">
                 <div class="flex items-center justify-between p-6 border-b thin-border border-gray-200/60 rounded-t dark:border-gray-600/40 dark:bg-gray-800">
@@ -69,7 +69,7 @@
                         </svg>
                     </button>
                 </div>
-                <form class="p-6" id="edit-dashboard-form">
+                <form class="p-6" id="edit-dashboard-form" action="/api/update/dashboard/" method="POST">
                     <input type="hidden" name="dashboard_id" id="edit-dashboard-id">
                     <div class="space-y-5">
                         <div>
@@ -84,9 +84,9 @@
                             <label for="edit-api" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Source API</label>
                             <select name="api" id="edit-api" class="input-thin w-full px-3 py-2 border border-gray-300/60 dark:border-gray-600/60 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500 dark:bg-gray-700/50 dark:text-white bg-gray-50/50" required>
                                 <option value="">Select source API</option>
-                                <option value="jsonplaceholder">JSONPlaceholder API</option>
-                                <option value="reqres">ReqRes API</option>
-                                <option value="httpbin">HTTPBin API</option>
+                                {% for source in sources %}
+                                    <option value="{{ source[2] }}">{{ source[2] }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                     </div>
@@ -104,7 +104,7 @@
     </div>
 
     <!-- Delete Confirmation Modal -->
-    <div id="delete_confirmation_modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50 backdrop-blur-sm">
+    <div id="delete_confirmation_modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black/50 backdrop-blur-sm">
         <div class="relative p-4 w-full max-w-md max-h-full">
             <div class="relative login-card dark:login-card-dark thin-border border-gray-200/60 rounded-2xl shadow-2xl dark:border-gray-600/40 dark:bg-gray-800">
                 <div class="flex items-center justify-between p-6 border-b thin-border border-gray-200/60 rounded-t dark:border-gray-600/40 dark:bg-gray-800">
@@ -184,36 +184,22 @@
 
         <!-- Dashboard Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            <!-- Sample Dashboard Cards -->
-            <div class="login-card dark:login-card-dark thin-border border-gray-200/60 rounded-2xl shadow-lg dark:border-gray-600/40 dark:bg-gray-800 hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1">
-                <div class="p-6">
-                    <h5 class="mb-3 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">A test dashboard</h5>
-                    <p class="mb-4 font-normal text-wrap break-words text-gray-600 dark:text-gray-400 leading-relaxed">This is a sample dashboard for testing purposes</p>
-                    <div class="flex w-full justify-end gap-3">
-                        <button onclick="openEditModal('1', 'A test dashboard', 'This is a sample dashboard for testing purposes', 'jsonplaceholder')" class="inline-flex items-center px-4 py-2 text-sm font-medium text-center thin-border border-amber-500 rounded-lg focus:ring-4 focus:outline-none focus:ring-amber-300 text-amber-600 hover:bg-amber-50 dark:border-amber-400 dark:text-amber-400 dark:hover:bg-amber-900/20 dark:focus:ring-amber-800 transition-colors duration-200">
-                            <i class="fa-solid fa-pencil me-2"></i>Edit
-                        </button>
-                        <button onclick="window.location.href='/configurator/1'" class="inline-flex items-center px-4 py-2.5 text-sm font-medium text-center text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 rounded-lg focus:ring-4 focus:outline-none focus:ring-amber-300 dark:focus:ring-amber-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                            <i class="fa-solid fa-arrow-up-right-from-square me-2"></i>Configure
-                        </button>
+            {% for dashboard in dashboards %}
+                <div class="thin-border border-gray-200/60 rounded-2xl shadow-lg dark:border-gray-600/40 dark:bg-gray-800 hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1">
+                    <div class="p-6">
+                        <h5 class="mb-3 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">{{ dashboard[3] }}</h5>
+                        <p class="mb-4 font-normal text-wrap break-words text-gray-600 dark:text-gray-400 leading-relaxed">{{ dashboard[4] }}</p>
+                        <div class="flex w-full justify-end gap-3">
+                            <button onclick="openEditModal('{{ dashboard[0] }}', '{{ dashboard[3] }}', '{{ dashboard[4] }}', '{{ dashboard[5] if dashboard[5] else '' }}')" class="inline-flex items-center px-4 py-2 text-sm font-medium text-center thin-border border-amber-500 rounded-lg focus:ring-4 focus:outline-none focus:ring-amber-300 text-amber-600 hover:bg-amber-50 dark:border-amber-400 dark:text-amber-400 dark:hover:bg-amber-900/20 dark:focus:ring-amber-800 transition-colors duration-200">
+                                <i class="fa-solid fa-pencil me-2"></i>Edit
+                            </button>
+                            <button onclick="location.href = '/configurator/{{ dashboard[0] }}'" class="inline-flex items-center px-4 py-2.5 text-sm font-medium text-center text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 rounded-lg focus:ring-4 focus:outline-none focus:ring-amber-300 dark:focus:ring-amber-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                                <i class="fa-solid fa-arrow-up-right-from-square me-2"></i>Configure
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="login-card dark:login-card-dark thin-border border-gray-200/60 rounded-2xl shadow-lg dark:border-gray-600/40 dark:bg-gray-800 hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1">
-                <div class="p-6">
-                    <h5 class="mb-3 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">Fake Store Dashboard</h5>
-                    <p class="mb-4 font-normal text-wrap break-words text-gray-600 dark:text-gray-400 leading-relaxed">Dashboard showing fake store API data</p>
-                    <div class="flex w-full justify-end gap-3">
-                        <button onclick="openEditModal('2', 'Fake Store Dashboard', 'Dashboard showing fake store API data', 'fakestore')" class="inline-flex items-center px-4 py-2 text-sm font-medium text-center thin-border border-amber-500 rounded-lg focus:ring-4 focus:outline-none focus:ring-amber-300 text-amber-600 hover:bg-amber-50 dark:border-amber-400 dark:text-amber-400 dark:hover:bg-amber-900/20 dark:focus:ring-amber-800 transition-colors duration-200">
-                            <i class="fa-solid fa-pencil me-2"></i>Edit
-                        </button>
-                        <button onclick="window.location.href='/configurator/2'" class="inline-flex items-center px-4 py-2.5 text-sm font-medium text-center text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 rounded-lg focus:ring-4 focus:outline-none focus:ring-amber-300 dark:focus:ring-amber-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                            <i class="fa-solid fa-arrow-up-right-from-square me-2"></i>Configure
-                        </button>
-                    </div>
-                </div>
-            </div>
+            {% endfor %}
 
             <!-- Add New Dashboard Card -->
             <div class="login-card dark:login-card-dark thin-border border-gray-200/60 rounded-2xl shadow-lg dark:border-gray-600/40 dark:bg-gray-800 hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1">
@@ -268,6 +254,16 @@
 
             document.body.appendChild(form);
             form.submit();
+        }
+
+        function closeModal(elementID) {
+            const element = document.getElementById(elementID)
+            element.classList.add("hidden")
+        }
+
+        function openModal(elementID) {
+            const element = document.getElementById(elementID)
+            element.classList.remove("hidden")
         }
     </script>
     
