@@ -4,10 +4,8 @@ A modular, lightweight, and intuitive dashboard maker for quick insights and dat
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![License](https://img.shields.io/badge/license-None-lightgrey)
-![Stars](https://img.shields.io/github/stars/boardough/boardough?style=social)
-![Forks](https://img.shields.io/github/forks/boardough/boardough?style=social)
-
-![Project Preview](/preview_example.png)
+![Stars](https://img.shields.io/github/stars/diva-in-STEM/boardough?style=social)
+![Forks](https://img.shields.io/github/forks/diva-in-STEM/boardough?style=social)
 
 
 ## ✨ Features
@@ -92,8 +90,6 @@ Once installed, you can start `boardough` and access your dashboard maker.
 
     Open your web browser and navigate to `http://127.0.0.1:5000`. You should see the `boardough` interface where you can start building dashboards.
 
-    ![Dashboard UI Example](/dashboard_ui_example.png)
-    *A placeholder for a screenshot showing the boardough UI in action.*
 
 ### Basic Dashboard Creation
 
